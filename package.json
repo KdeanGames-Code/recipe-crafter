@@ -1,0 +1,23 @@
+{
+  "name": "recipe-crafter",
+  "version": "1.0.0",
+  "description": "A Progressive Web App for meal planning and cooking, featuring a Recipes tab, Chef Master preparation interface, Calendar, Shopping List, and Add Recipe functionality.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KdeanGames-Code/recipe-crafter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KdeanGames-Code/recipe-crafter/issues"
+  },
+  "homepage": "https://github.com/KdeanGames-Code/recipe-crafter#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
