@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+[data-rbd-draggable-context-id] {
+    display: block !important;
+}
+[data-rbd-draggable-context-id] > * {
+    display: block !important;
+}
