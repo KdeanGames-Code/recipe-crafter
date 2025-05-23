@@ -7,11 +7,13 @@ const Recipes = () => {
             id: 1,
             title: "Spaghetti Bolognese",
             description: "Classic Italian pasta dish",
+            category: "Italian",
         },
         {
             id: 2,
             title: "Chicken Salad",
             description: "Fresh and healthy salad",
+            category: "American",
         },
     ];
 
@@ -36,6 +38,9 @@ const Recipes = () => {
                             {recipe.title}
                         </h2>
                         <p className="text-gray-300">{recipe.description}</p>
+                        <p className="text-gray-400 italic">
+                            Category: {recipe.category}
+                        </p>
                         <Link to="/chef-master">
                             <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded">
                                 Start Chef Master
