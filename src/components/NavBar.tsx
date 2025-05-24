@@ -5,6 +5,11 @@ const NavBar = () => {
         <nav className="bg-gray-900 text-white p-4">
             <ul className="flex space-x-4">
                 <li>
+                    <Link to="/" className="hover:underline">
+                        Dashboard
+                    </Link>
+                </li>
+                <li>
                     <Link to="/recipes" className="hover:underline">
                         Recipes
                     </Link>

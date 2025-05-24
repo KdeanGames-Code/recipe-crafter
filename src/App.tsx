@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavBar from "./components/NavBar";
+import Dashboard from "./components/Dashboard";
 import Recipes from "./components/Recipes";
 import ChefMaster from "./components/ChefMaster";
 import Calendar from "./components/Calendar";
@@ -10,11 +11,11 @@ function App() {
         <BrowserRouter basename="/Recipes">
             <NavBar />
             <Routes>
-                <Route path="/" element={<Navigate to="recipes" replace />} />
-                <Route path="recipes" element={<Recipes />} />
-                <Route path="chef-master" element={<ChefMaster />} />
-                <Route path="calendar" element={<Calendar />} />
-                <Route path="shopping-list" element={<ShoppingList />} />
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/recipes" element={<Recipes />} />
+                <Route path="/chef-master" element={<ChefMaster />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/shopping-list" element={<ShoppingList />} />
                 <Route path="*" element={<div>404 Not Found</div>} />
             </Routes>
         </BrowserRouter>
