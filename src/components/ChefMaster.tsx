@@ -1,5 +1,3 @@
-import React from "react";
-
 const ChefMaster = () => {
     const steps = [
         { id: 1, group: "Prep", description: "Chop onions" },
@@ -9,7 +7,6 @@ const ChefMaster = () => {
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-gray-800 text-white">
-            {/* Left Pane: Steps */}
             <div className="w-full md:w-1/2 p-4 border-r border-gray-600">
                 <h2 className="text-2xl font-bold mb-4">Steps</h2>
                 {steps.map((step) => (
@@ -23,7 +20,6 @@ const ChefMaster = () => {
                     </div>
                 ))}
             </div>
-            {/* Right Pane: Instructions/Timer (Modal on Mobile) */}
             <div className="w-full md:w-1/2 p-4 fixed inset-0 md:static bg-gray-800 md:bg-transparent flex md:block transition-transform duration-300">
                 <div className="p-4 w-full">
                     <h2 className="text-2xl font-bold mb-4">Instructions</h2>

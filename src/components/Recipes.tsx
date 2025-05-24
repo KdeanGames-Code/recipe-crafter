@@ -1,21 +1,23 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+
+interface Recipe {
+    id: number;
+    title: string;
+    description?: string;
+    category?: string;
+}
 
 const Recipes = () => {
-    const recipes = [
-        {
-            id: 1,
-            title: "Spaghetti Bolognese",
-            description: "Classic Italian pasta dish",
-            category: "Italian",
-        },
-        {
-            id: 2,
-            title: "Chicken Salad",
-            description: "Fresh and healthy salad",
-            category: "American",
-        },
-    ];
+    const [recipes, setRecipes] = useState<Recipe[]>([]);
+
+    useEffect(() => {
+        axios
+            .get("http://127.0.0.1:3000/api/recipes")
+            .then((response) => setRecipes(response.data))
+            .catch((error) => console.error("Error fetching recipes:", error));
+    }, []);
 
     return (
         <div className="p-4 bg-gray-800 min-h-screen text-white">
@@ -37,9 +39,11 @@ const Recipes = () => {
                         <h2 className="text-xl font-semibold">
                             {recipe.title}
                         </h2>
-                        <p className="text-gray-300">{recipe.description}</p>
+                        <p className="text-gray-300">
+                            {recipe.description || "No description"}
+                        </p>
                         <p className="text-gray-400 italic">
-                            Category: {recipe.category}
+                            Category: {recipe.category || "N/A"}
                         </p>
                         <Link to="/chef-master">
                             <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded">

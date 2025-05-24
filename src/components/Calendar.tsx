@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     DragDropContext,
     Droppable,
@@ -14,7 +14,7 @@ const Calendar = () => {
     ]);
 
     const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const startDate = new Date("2025-05-19"); // Start of the week (Monday)
+    const startDate = new Date("2025-05-19");
 
     const onDragEnd = (result: DropResult) => {
         if (!result.destination) return;
@@ -22,7 +22,6 @@ const Calendar = () => {
         const [reorderedItem] = items.splice(result.source.index, 1);
         items.splice(result.destination.index, 0, reorderedItem);
 
-        // Update the date based on the destination day
         const destinationDayIndex = parseInt(
             result.destination.droppableId.split("-")[1]
         );
@@ -71,7 +70,7 @@ const Calendar = () => {
                                         {...provided.droppableProps}
                                         className="min-h-[100px] p-2 bg-gray-600 rounded"
                                     >
-                                        {dayMeals.map((meal, mealIndex) => {
+                                        {dayMeals.map((meal) => {
                                             const globalIndex = meals.findIndex(
                                                 (m) => m.id === meal.id
                                             );

@@ -1,5 +1,3 @@
-import React from "react";
-
 const ShoppingList = () => {
     const items = [
         { id: 1, name: "Tomatoes", quantity: "2 pcs" },
