@@ -535,9 +535,6 @@ const Recipes = () => {
                 </div>
 
                 <div className="flex-1">
-                    <h1 className="text-4xl font-bold text-white mb-6 text-center">
-                        Your Recipes
-                    </h1>
                     {isLoadingRecipes ? (
                         <p className="text-gray-400 text-center">
                             Loading recipes...
@@ -588,7 +585,7 @@ const Recipes = () => {
                                                 </span>
                                             )}
                                             {recipeDietary.length > 0 && (
-                                                <span className="badge px-2 py-1 rounded-full text-sm bg-green-500 text-white">
+                                                <span className="badge px-2 py-1 rounded-full text-sm bg-blue-500 text-white">
                                                     {recipeDietary.join(", ")}
                                                 </span>
                                             )}
@@ -613,20 +610,20 @@ const Recipes = () => {
                                                 onClick={() =>
                                                     toggleFavorite(recipe.id)
                                                 }
-                                                className="p-2 bg-gray-700 rounded-full"
+                                                className="favorite-btn"
                                             >
                                                 <i
-                                                    className={`fas fa-heart ${
+                                                    className={`fas fa-heart favorite-icon ${
                                                         favorites.includes(
                                                             recipe.id
                                                         )
-                                                            ? "text-red-500"
-                                                            : "text-gray-400"
+                                                            ? "favorited"
+                                                            : ""
                                                     } text-sm`}
                                                 ></i>
                                             </button>
                                             <Link to="/chef-master">
-                                                <button className="text-sm text-blue-400 hover:text-blue-300 bg-gray-700 px-3 py-1 rounded-lg">
+                                                <button className="chef-master-btn">
                                                     Start Chef Master
                                                 </button>
                                             </Link>

@@ -18,32 +18,67 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.nav-bar {
-    background-color: #1f2937; /* bg-gray-800 */
-    padding: 1rem; /* p-4 */
+/* Shared styles with 3D effects */
+button.favorite-btn {
+    padding: 0.5rem !important; /* p-2 */
+    background: linear-gradient(
+        to bottom,
+        #4b5563,
+        #374151
+    ) !important; /* Gradient: bg-gray-600 to bg-gray-700 */
+    border-radius: 9999px !important; /* rounded-full */
+    border: 1px solid #2d3748 !important; /* border-gray-800 for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
 }
 
-.nav-list {
-    display: flex;
-    gap: 1rem; /* space-x-4 */
-    list-style: none;
-    margin: 0;
-    padding: 0;
+button.favorite-btn:hover {
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
 }
 
-.nav-link {
-    padding: 0.5rem 0.75rem; /* px-3 py-2 */
-    border-radius: 0.25rem; /* rounded */
-    background-color: #1f2937; /* bg-gray-800 */
-    color: #ffffff; /* text-white */
-    text-decoration: none;
-    transition: background-color 300ms ease; /* transition-colors duration-300 */
+button.favorite-btn:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
 }
 
-.nav-link:hover {
-    background-color: #f97316; /* hover:bg-orange-500 */
+i.favorite-icon {
+    color: #9ca3af !important; /* text-gray-400 */
 }
 
-.nav-link.active {
-    background-color: #10b981; /* bg-green-500 */
+i.favorite-icon.favorited {
+    color: #ef4444 !important; /* text-red-500 */
+}
+
+button.chef-master-btn {
+    color: #60a5fa !important; /* text-blue-400 */
+    background: linear-gradient(
+        to bottom,
+        #4b5563,
+        #374151
+    ) !important; /* Gradient: bg-gray-600 to bg-gray-700 */
+    padding-left: 0.75rem !important; /* px-3 */
+    padding-right: 0.75rem !important;
+    padding-top: 0.25rem !important; /* py-1 */
+    padding-bottom: 0.25rem !important;
+    border-radius: 0.5rem !important; /* rounded-lg */
+    font-size: 0.875rem !important; /* text-sm */
+    border: 1px solid #2d3748 !important; /* border-gray-800 for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
+}
+
+button.chef-master-btn:hover {
+    color: #93c5fd !important; /* hover:text-blue-300 */
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+button.chef-master-btn:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
 }
