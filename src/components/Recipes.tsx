@@ -50,13 +50,15 @@ const FilterBadge = ({
     return (
         <div
             ref={badgeRef}
-            className={`badge px-3 py-1 rounded-full text-sm text-white shadow-lg transform transition-all duration-300 hover:scale-105 ${
+            className={`badge ${
                 badge.type === "cuisine"
-                    ? "bg-blue-500"
+                    ? "bg-amber-800"
                     : badge.type === "dish_type"
                     ? "bg-purple-500"
                     : badge.type === "allergen"
                     ? "bg-red-500"
+                    : badge.type === "dietary"
+                    ? "bg-blue-500"
                     : "bg-blue-500"
             } ${isDragging ? "opacity-50" : ""}`}
             style={{ cursor: "move" }}
@@ -580,12 +582,12 @@ const Recipes = () => {
                                         </p>
                                         <div className="flex space-x-2 mt-2">
                                             {recipeAllergens.length > 0 && (
-                                                <span className="badge px-2 py-1 rounded-full text-sm bg-red-500 text-white">
+                                                <span className="badge bg-red-500">
                                                     {recipeAllergens.join(", ")}
                                                 </span>
                                             )}
                                             {recipeDietary.length > 0 && (
-                                                <span className="badge px-2 py-1 rounded-full text-sm bg-blue-500 text-white">
+                                                <span className="badge bg-blue-500">
                                                     {recipeDietary.join(", ")}
                                                 </span>
                                             )}

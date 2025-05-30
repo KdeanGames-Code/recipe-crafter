@@ -82,3 +82,310 @@ button.chef-master-btn:active {
     transform: translateY(1px) !important; /* Pressed effect */
     box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
 }
+
+/* 3D effects for badges (allergen, dietary, filter options) */
+span.badge {
+    padding-left: 0.5rem !important; /* px-2 */
+    padding-right: 0.5rem !important;
+    padding-top: 0.25rem !important; /* py-1 */
+    padding-bottom: 0.25rem !important;
+    border-radius: 9999px !important; /* rounded-full */
+    font-size: 0.875rem !important; /* text-sm */
+    color: #ffffff !important; /* text-white */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Subtle border for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
+}
+
+span.badge:hover {
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+span.badge:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+div.badge {
+    padding-left: 0.5rem !important; /* px-2 */
+    padding-right: 0.5rem !important;
+    padding-top: 0.25rem !important; /* py-1 */
+    padding-bottom: 0.25rem !important;
+    border-radius: 9999px !important; /* rounded-full */
+    font-size: 0.875rem !important; /* text-sm */
+    color: #ffffff !important; /* text-white */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Subtle border for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
+}
+
+div.badge:hover {
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+div.badge:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+/* Add gradients based on badge type */
+div.badge.bg-blue-500 {
+    background: linear-gradient(
+        to bottom,
+        #3b82f6,
+        #2563eb
+    ) !important; /* Gradient for blue (Dietary) */
+}
+
+div.badge.bg-purple-500 {
+    background: linear-gradient(
+        to bottom,
+        #a855f7,
+        #9333ea
+    ) !important; /* Gradient for purple (Dish Type) */
+}
+
+div.badge.bg-red-500 {
+    background: linear-gradient(
+        to bottom,
+        #ef4444,
+        #dc2626
+    ) !important; /* Gradient for red (Allergen) */
+}
+
+div.badge.bg-green-500 {
+    background: linear-gradient(
+        to bottom,
+        #10b981,
+        #059669
+    ) !important; /* Gradient for green */
+}
+
+div.badge.bg-orange-500 {
+    background: linear-gradient(
+        to bottom,
+        #f97316,
+        #ea580c
+    ) !important; /* Gradient for orange (Cuisines) */
+}
+
+span.badge.bg-blue-500 {
+    background: linear-gradient(
+        to bottom,
+        #3b82f6,
+        #2563eb
+    ) !important; /* Gradient for blue (Dietary) */
+}
+
+span.badge.bg-red-500 {
+    background: linear-gradient(
+        to bottom,
+        #ef4444,
+        #dc2626
+    ) !important; /* Gradient for red (Allergen) */
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Load the custom font */
+@font-face {
+    font-family: "PatrickHand";
+    src: url("/fonts/PatrickHand-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: "PatrickHand", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Shared styles with 3D effects */
+button.favorite-btn {
+    padding: 0.5rem !important; /* p-2 */
+    background: linear-gradient(
+        to bottom,
+        #4b5563,
+        #374151
+    ) !important; /* Gradient: bg-gray-600 to bg-gray-700 */
+    border-radius: 9999px !important; /* rounded-full */
+    border: 1px solid #2d3748 !important; /* border-gray-800 for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
+}
+
+button.favorite-btn:hover {
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+button.favorite-btn:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+i.favorite-icon {
+    color: #9ca3af !important; /* text-gray-400 */
+}
+
+i.favorite-icon.favorited {
+    color: #ef4444 !important; /* text-red-500 */
+}
+
+button.chef-master-btn {
+    color: #60a5fa !important; /* text-blue-400 */
+    background: linear-gradient(
+        to bottom,
+        #4b5563,
+        #374151
+    ) !important; /* Gradient: bg-gray-600 to bg-gray-700 */
+    padding-left: 0.75rem !important; /* px-3 */
+    padding-right: 0.75rem !important;
+    padding-top: 0.25rem !important; /* py-1 */
+    padding-bottom: 0.25rem !important;
+    border-radius: 0.5rem !important; /* rounded-lg */
+    font-size: 0.875rem !important; /* text-sm */
+    border: 1px solid #2d3748 !important; /* border-gray-800 for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
+}
+
+button.chef-master-btn:hover {
+    color: #93c5fd !important; /* hover:text-blue-300 */
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+button.chef-master-btn:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+/* 3D effects for badges (allergen, dietary, filter options) */
+span.badge {
+    padding-left: 0.5rem !important; /* px-2 */
+    padding-right: 0.5rem !important;
+    padding-top: 0.25rem !important; /* py-1 */
+    padding-bottom: 0.25rem !important;
+    border-radius: 9999px !important; /* rounded-full */
+    font-size: 0.875rem !important; /* text-sm */
+    color: #ffffff !important; /* text-white */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Subtle border for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
+}
+
+span.badge:hover {
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+span.badge:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+div.badge {
+    padding-left: 0.5rem !important; /* px-2 */
+    padding-right: 0.5rem !important;
+    padding-top: 0.25rem !important; /* py-1 */
+    padding-bottom: 0.25rem !important;
+    border-radius: 9999px !important; /* rounded-full */
+    font-size: 0.875rem !important; /* text-sm */
+    color: #ffffff !important; /* text-white */
+    border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Subtle border for depth */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: all 0.2s ease !important;
+}
+
+div.badge:hover {
+    transform: translateY(-1px) !important; /* Slight lift on hover */
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
+        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+div.badge:active {
+    transform: translateY(1px) !important; /* Pressed effect */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+/* Add gradients based on badge type */
+div.badge.bg-blue-500 {
+    background: linear-gradient(
+        to bottom,
+        #3b82f6,
+        #2563eb
+    ) !important; /* Gradient for blue (Dietary) */
+}
+
+div.badge.bg-purple-500 {
+    background: linear-gradient(
+        to bottom,
+        #a855f7,
+        #9333ea
+    ) !important; /* Gradient for purple (Dish Type) */
+}
+
+div.badge.bg-red-500 {
+    background: linear-gradient(
+        to bottom,
+        #ef4444,
+        #dc2626
+    ) !important; /* Gradient for red (Allergen) */
+}
+
+div.badge.bg-green-500 {
+    background: linear-gradient(
+        to bottom,
+        #10b981,
+        #059669
+    ) !important; /* Gradient for green */
+}
+
+div.badge.bg-amber-800 {
+    background: linear-gradient(
+        to bottom,
+        #92400e,
+        #7c2d12
+    ) !important; /* Gradient for brown (Cuisines) */
+}
+
+/* Alternative option for Cuisines (teal) - uncomment to use instead of brown */
+/*
+div.badge.bg-teal-500 {
+    background: linear-gradient(to bottom, #14B8A6, #0D9488) !important;
+}
+*/
+
+span.badge.bg-blue-500 {
+    background: linear-gradient(
+        to bottom,
+        #3b82f6,
+        #2563eb
+    ) !important; /* Gradient for blue (Dietary) */
+}
+
+span.badge.bg-red-500 {
+    background: linear-gradient(
+        to bottom,
+        #ef4444,
+        #dc2626
+    ) !important; /* Gradient for red (Allergen) */
+}
