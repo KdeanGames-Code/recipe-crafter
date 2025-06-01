@@ -31,9 +31,11 @@ const ItemTypes = {
 const FilterBadge = ({
     badge,
     onRemove,
+    showRemove,
 }: {
     badge: FilterBadge;
     onRemove: () => void;
+    showRemove: boolean;
 }) => {
     const badgeRef = useRef<HTMLDivElement>(null);
 
@@ -64,10 +66,12 @@ const FilterBadge = ({
             style={{ cursor: "move" }}
         >
             {badge.value}{" "}
-            <i
-                className="fas fa-times ml-1 cursor-pointer"
-                onClick={onRemove}
-            ></i>
+            {showRemove && (
+                <i
+                    className="fas fa-times ml-1 cursor-pointer"
+                    onClick={onRemove}
+                ></i>
+            )}
         </div>
     );
 };
@@ -144,6 +148,7 @@ const FilterBox = ({
                         key={`${badge.type}-${badge.value}-${index}`}
                         badge={badge}
                         onRemove={() => handleRemove(badge)}
+                        showRemove={true}
                     />
                 ))}
             </div>
@@ -200,6 +205,7 @@ const FilterOptions = ({
                             key={`${badge.type}-${badge.value}-${index}`}
                             badge={badge}
                             onRemove={() => {}}
+                            showRemove={false}
                         />
                     ))
                 ) : (
