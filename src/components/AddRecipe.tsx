@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import API_BASE_URL from "../config/apiConfig";
+import placeholderPopup from "../assets/images/placeholder-kitchen-672x448.png";
 
 interface Tag {
     tag_type: "allergen" | "dietary";
@@ -9,7 +12,7 @@ interface Tag {
 }
 
 interface Recipe {
-    id?: number; // Optional for new recipes
+    id?: number;
     title: string;
     description?: string;
     cuisine: string;
@@ -19,8 +22,118 @@ interface Recipe {
     image_url?: string;
 }
 
+interface TagBadge {
+    type: "allergen" | "dietary";
+    value: string;
+}
+
+const ItemTypes = {
+    TAG: "tag",
+};
+
+const TagBadge = ({
+    badge,
+    onRemove,
+    showRemove,
+}: {
+    badge: TagBadge;
+    onRemove: () => void;
+    showRemove: boolean;
+}) => {
+    const badgeRef = useRef<HTMLDivElement>(null);
+
+    const [{ isDragging }, drag] = useDrag(() => ({
+        type: ItemTypes.TAG,
+        item: badge,
+        collect: (monitor) => ({
+            isDragging: !!monitor.isDragging(),
+        }),
+    }));
+
+    drag(badgeRef);
+
+    return (
+        <div
+            ref={badgeRef}
+            className={`badge ${
+                badge.type === "allergen" ? "bg-red-500" : "bg-blue-500"
+            } ${isDragging ? "opacity-50" : ""}`}
+            style={{ cursor: "move" }}
+        >
+            {badge.value}{" "}
+            {showRemove && (
+                <i
+                    className="fas fa-times ml-1 cursor-pointer"
+                    onClick={onRemove}
+                ></i>
+            )}
+        </div>
+    );
+};
+
+const TagBox = ({
+    appliedTags,
+    setAppliedTags,
+    tagType,
+}: {
+    appliedTags: TagBadge[];
+    setAppliedTags: React.Dispatch<React.SetStateAction<TagBadge[]>>;
+    tagType: "allergen" | "dietary";
+}) => {
+    const tagBoxRef = useRef<HTMLDivElement>(null);
+
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: ItemTypes.TAG,
+        drop: (item: TagBadge) => {
+            if (
+                item.type === tagType &&
+                !appliedTags.some(
+                    (tag) => tag.type === item.type && tag.value === item.value
+                )
+            ) {
+                setAppliedTags((prev) => [...prev, item]);
+            }
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
+    drop(tagBoxRef);
+
+    const handleRemove = (badge: TagBadge) => {
+        setAppliedTags((prev) =>
+            prev.filter(
+                (tag) => !(tag.type === badge.type && tag.value === badge.value)
+            )
+        );
+    };
+
+    return (
+        <div
+            ref={tagBoxRef}
+            className={`border-2 border-dashed rounded-lg p-4 min-h-[100px] ${
+                isOver ? "bg-gray-600" : "bg-gray-700"
+            }`}
+        >
+            <div className="flex flex-wrap gap-2">
+                {appliedTags
+                    .filter((tag) => tag.type === tagType)
+                    .map((badge, index) => (
+                        <TagBadge
+                            key={`${badge.type}-${badge.value}-${index}`}
+                            badge={badge}
+                            onRemove={() => handleRemove(badge)}
+                            showRemove={true}
+                        />
+                    ))}
+            </div>
+        </div>
+    );
+};
+
 const AddRecipe = () => {
-    const { id } = useParams<{ id: string }>(); // Get the recipe ID for editing
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [allergens, setAllergens] = useState<string[]>([]);
     const [dietaryTags, setDietaryTags] = useState<string[]>([]);
@@ -28,8 +141,8 @@ const AddRecipe = () => {
     const [dishTypes, setDishTypes] = useState<string[]>([]);
     const [isLoadingTags, setIsLoadingTags] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const [formError, setFormError] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
 
     // Form state
     const [recipe, setRecipe] = useState<Recipe>({
@@ -41,14 +154,25 @@ const AddRecipe = () => {
         instructions: "",
         image_url: "",
     });
-    const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
-    const [selectedDietaryTags, setSelectedDietaryTags] = useState<string[]>(
-        []
-    );
+    const [selectedTags, setSelectedTags] = useState<TagBadge[]>([]);
+    const [validationErrors, setValidationErrors] = useState<{
+        [key: string]: string;
+    }>({});
+
+    // Image handling state
+    const [imageMode, setImageMode] = useState<"upload" | "url">("upload");
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imageUrlError, setImageUrlError] = useState<string>("");
+
+    // Add Cuisine/Dish Type state
+    const [showAddCuisine, setShowAddCuisine] = useState(false);
+    const [newCuisine, setNewCuisine] = useState("");
+    const [showAddDishType, setShowAddDishType] = useState(false);
+    const [newDishType, setNewDishType] = useState("");
 
     // Load tags and recipe data
     useEffect(() => {
-        // Fetch tags for the sidebar and form
         axios
             .get(`${API_BASE_URL}/tags`)
             .then((response) => {
@@ -72,7 +196,6 @@ const AddRecipe = () => {
                 setIsLoadingTags(false);
             });
 
-        // Fetch cuisines and dish types
         axios
             .get(`${API_BASE_URL}/recipes`)
             .then((response) => {
@@ -102,7 +225,6 @@ const AddRecipe = () => {
                 setDishTypes([]);
             });
 
-        // If editing, fetch the recipe details
         if (id) {
             axios
                 .get(`${API_BASE_URL}/recipes/${id}`)
@@ -118,22 +240,21 @@ const AddRecipe = () => {
                         image_url: fetchedRecipe.image_url || "",
                     });
 
-                    // Fetch associated tags
+                    if (fetchedRecipe.image_url) {
+                        setImageMode("url");
+                        setImagePreview(fetchedRecipe.image_url);
+                    }
+
                     axios
                         .get(`${API_BASE_URL}/recipe-tags/${id}`)
                         .then((tagResponse) => {
-                            const recipeAllergens = tagResponse.data
-                                .filter(
-                                    (tag: Tag) => tag.tag_type === "allergen"
-                                )
-                                .map((tag: Tag) => tag.tag_name);
-                            const recipeDietaryTags = tagResponse.data
-                                .filter(
-                                    (tag: Tag) => tag.tag_type === "dietary"
-                                )
-                                .map((tag: Tag) => tag.tag_name);
-                            setSelectedAllergens(recipeAllergens);
-                            setSelectedDietaryTags(recipeDietaryTags);
+                            const recipeTags = tagResponse.data.map(
+                                (tag: Tag) => ({
+                                    type: tag.tag_type,
+                                    value: tag.tag_name,
+                                })
+                            );
+                            setSelectedTags(recipeTags);
                         })
                         .catch((error) => {
                             console.error(
@@ -160,6 +281,14 @@ const AddRecipe = () => {
     ) => {
         const { name, value } = e.target;
         setRecipe((prev) => ({ ...prev, [name]: value }));
+        setValidationErrors((prev) => ({ ...prev, [name]: "" }));
+
+        if (name === "cuisine") {
+            setShowAddCuisine(value === "add_cuisine");
+        }
+        if (name === "dish_type") {
+            setShowAddDishType(value === "add_dish_type");
+        }
     };
 
     // Handle ingredients list
@@ -167,6 +296,7 @@ const AddRecipe = () => {
         const updatedIngredients = [...recipe.ingredients];
         updatedIngredients[index] = value;
         setRecipe((prev) => ({ ...prev, ingredients: updatedIngredients }));
+        setValidationErrors((prev) => ({ ...prev, ingredients: "" }));
     };
 
     const addIngredient = () => {
@@ -185,56 +315,74 @@ const AddRecipe = () => {
         }
     };
 
-    // Handle allergen and dietary tag checkboxes
-    const handleAllergenChange = (allergen: string) => {
-        setSelectedAllergens((prev) =>
-            prev.includes(allergen)
-                ? prev.filter((item) => item !== allergen)
-                : [...prev, allergen]
-        );
+    // Handle adding new cuisines and dish types
+    const handleAddCuisine = () => {
+        if (newCuisine.trim()) {
+            setCuisines((prev) => [...prev, newCuisine.trim()]);
+            setRecipe((prev) => ({ ...prev, cuisine: newCuisine.trim() }));
+            setNewCuisine("");
+            setShowAddCuisine(false);
+        }
     };
 
-    const handleDietaryTagChange = (tag: string) => {
-        setSelectedDietaryTags((prev) =>
-            prev.includes(tag)
-                ? prev.filter((item) => item !== tag)
-                : [...prev, tag]
-        );
+    const handleAddDishType = () => {
+        if (newDishType.trim()) {
+            setDishTypes((prev) => [...prev, newDishType.trim()]);
+            setRecipe((prev) => ({ ...prev, dish_type: newDishType.trim() }));
+            setNewDishType("");
+            setShowAddDishType(false);
+        }
+    };
+
+    // Handle image file upload
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Handle image URL change
+    const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const url = e.target.value;
+        setRecipe((prev) => ({ ...prev, image_url: url }));
+        setImageUrlError("");
+        if (url) {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => setImagePreview(url);
+            img.onerror = () => setImageUrlError("Invalid image URL");
+        } else {
+            setImagePreview(null);
+        }
     };
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setFormError("");
+        setValidationErrors({});
+
+        // Validation
+        const errors: { [key: string]: string } = {};
+        if (!recipe.title.trim()) errors.title = "Title is required.";
+        if (!recipe.cuisine) errors.cuisine = "Cuisine is required.";
+        if (!recipe.dish_type) errors.dish_type = "Dish Type is required.";
+        if (recipe.ingredients.every((ingredient) => !ingredient.trim()))
+            errors.ingredients = "At least one ingredient is required.";
+        if (!recipe.instructions.trim())
+            errors.instructions = "Instructions are required.";
+
+        if (Object.keys(errors).length > 0) {
+            setValidationErrors(errors);
+            return;
+        }
+
         setIsSubmitting(true);
-
-        // Basic validation
-        if (!recipe.title.trim()) {
-            setFormError("Title is required.");
-            setIsSubmitting(false);
-            return;
-        }
-        if (!recipe.cuisine) {
-            setFormError("Cuisine is required.");
-            setIsSubmitting(false);
-            return;
-        }
-        if (!recipe.dish_type) {
-            setFormError("Dish Type is required.");
-            setIsSubmitting(false);
-            return;
-        }
-        if (recipe.ingredients.every((ingredient) => !ingredient.trim())) {
-            setFormError("At least one ingredient is required.");
-            setIsSubmitting(false);
-            return;
-        }
-        if (!recipe.instructions.trim()) {
-            setFormError("Instructions are required.");
-            setIsSubmitting(false);
-            return;
-        }
-
         try {
             let recipeId: number;
             const recipeData = {
@@ -243,6 +391,19 @@ const AddRecipe = () => {
                     ingredient.trim()
                 ),
             };
+
+            // Handle image data
+            if (imageMode === "upload" && imageFile) {
+                // Simulate upload by converting to Base64 (replace with actual API upload in production)
+                const reader = new FileReader();
+                reader.readAsDataURL(imageFile);
+                await new Promise((resolve) => {
+                    reader.onload = () => {
+                        recipeData.image_url = reader.result as string;
+                        resolve(null);
+                    };
+                });
+            }
 
             if (id) {
                 // Update existing recipe
@@ -254,358 +415,598 @@ const AddRecipe = () => {
                     `${API_BASE_URL}/recipes`,
                     recipeData
                 );
-                recipeId = response.data.id; // Assuming the API returns the new recipe ID
+                recipeId = response.data.id;
             }
 
-            // Update tags (assumes an endpoint to set recipe tags)
-            const tags = [
-                ...selectedAllergens.map((tag) => ({
-                    tag_type: "allergen" as const,
-                    tag_name: tag,
-                })),
-                ...selectedDietaryTags.map((tag) => ({
-                    tag_type: "dietary" as const,
-                    tag_name: tag,
-                })),
-            ];
+            // Update tags
+            const tags = selectedTags.map((tag) => ({
+                tag_type: tag.type,
+                tag_name: tag.value,
+            }));
             await axios.post(`${API_BASE_URL}/recipe-tags/${recipeId}`, {
                 tags,
             });
 
-            // Navigate back to recipes page
             navigate("/recipes");
         } catch (error) {
             console.error("Error saving recipe:", error);
-            setFormError("Failed to save recipe. Please try again.");
+            setValidationErrors({
+                form: "Failed to save recipe. Please try again.",
+            });
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    return (
-        <div className="p-6 min-h-screen flex">
-            {/* Left Column: Tools/Options Sidebar */}
-            <div
-                className="bg-gray-800 p-4 mr-4"
-                style={{ minWidth: "200px", maxWidth: "500px" }}
-            >
-                <h2 className="text-2xl font-bold text-white mb-4">
-                    {id ? "Edit Recipe Options" : "Add/Import Recipe Options"}
-                </h2>
-                {errorMessage && (
-                    <p className="text-red-500 mb-4">{errorMessage}</p>
-                )}
-                <div className="space-y-4">
-                    {isLoadingTags ? (
-                        <p className="text-gray-400">Loading options...</p>
-                    ) : (
-                        <>
-                            {/* Cuisine Options */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-white mb-2">
-                                    Cuisines
-                                </h3>
-                                <select
-                                    className="p-3 bg-gray-700 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                    value={recipe.cuisine}
-                                    onChange={handleInputChange}
-                                    name="cuisine"
-                                >
-                                    <option value="">Select Cuisine</option>
-                                    {cuisines.map((cuisine) => (
-                                        <option key={cuisine} value={cuisine}>
-                                            {cuisine}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            {/* Dish Type Options */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-white mb-2">
-                                    Dish Types
-                                </h3>
-                                <select
-                                    className="p-3 bg-gray-700 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                    value={recipe.dish_type}
-                                    onChange={handleInputChange}
-                                    name="dish_type"
-                                >
-                                    <option value="">Select Dish Type</option>
-                                    {dishTypes.map((dishType) => (
-                                        <option key={dishType} value={dishType}>
-                                            {dishType}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            {/* Allergen Tags */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-white mb-2">
-                                    Allergens
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {allergens.map((allergen) => (
-                                        <span
-                                            key={allergen}
-                                            className="badge bg-red-500"
-                                        >
-                                            {allergen}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            {/* Dietary Tags */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-white mb-2">
-                                    Dietary Tags
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {dietaryTags.map((dietary) => (
-                                        <span
-                                            key={dietary}
-                                            className="badge bg-blue-500"
-                                        >
-                                            {dietary}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
+    // Info box content based on focused field
+    const getInfoBoxContent = () => {
+        switch (focusedField) {
+            case "title":
+                return 'Enter a descriptive title for your recipe (e.g., "Spicy Chicken Tacos").';
+            case "description":
+                return "Provide a brief description of your recipe, including any special notes or serving suggestions.";
+            case "cuisine":
+                return 'Select the cuisine type. Choose "Add Cuisine" to create a new one.';
+            case "dish_type":
+                return 'Select the dish type (e.g., Main Course, Dessert). Choose "Add Dish Type" to create a new one.';
+            case "ingredients":
+                return "List each ingredient required for the recipe. Add or remove ingredients as needed.";
+            case "instructions":
+                return "Provide step-by-step instructions for preparing the recipe. Use new lines for each step.";
+            case "allergens":
+                return "Drag allergen tags from the sidebar to this section if the recipe contains them.";
+            case "dietary":
+                return "Drag dietary tags from the sidebar to this section if the recipe matches these diets.";
+            case "image_url":
+                return imageMode === "upload"
+                    ? "Upload an image of your recipe. A preview will appear once selected."
+                    : "Enter a URL for the recipe image. A preview will appear if the URL is valid.";
+            default:
+                return "Fill in the form to add or edit your recipe. Required fields are marked with an asterisk (*).";
+        }
+    };
 
-            {/* Right Column: Recipe Form */}
-            <div className="flex-1">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                    {id
-                        ? `Edit Recipe: ${recipe.title || "Loading..."}`
-                        : "Add/Import Recipe"}
-                </h2>
-                <div className="bg-gray-700 p-4 rounded-lg">
-                    {formError && (
-                        <p className="text-red-500 mb-4">{formError}</p>
+    return (
+        <DndProvider backend={HTML5Backend}>
+            <div className="p-6 min-h-screen flex">
+                {/* Left Column: Recipe Options Sidebar */}
+                <div
+                    className="bg-gray-800 p-4 mr-4"
+                    style={{ minWidth: "200px", maxWidth: "500px" }}
+                >
+                    <h2 className="text-2xl font-bold text-yellow-500 mb-4">
+                        Recipe Options
+                    </h2>
+                    {errorMessage && (
+                        <p className="text-red-500 mb-4">{errorMessage}</p>
                     )}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Title */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Title *
-                            </label>
-                            <input
-                                type="text"
-                                name="title"
-                                value={recipe.title}
-                                onChange={handleInputChange}
-                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                placeholder="Enter recipe title"
-                            />
-                        </div>
-                        {/* Description */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Description
-                            </label>
-                            <textarea
-                                name="description"
-                                value={recipe.description || ""}
-                                onChange={handleInputChange}
-                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                placeholder="Enter recipe description"
-                                rows={3}
-                            />
-                        </div>
-                        {/* Cuisine */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Cuisine *
-                            </label>
-                            <select
-                                name="cuisine"
-                                value={recipe.cuisine}
-                                onChange={handleInputChange}
-                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                            >
-                                <option value="">Select Cuisine</option>
-                                {cuisines.map((cuisine) => (
-                                    <option key={cuisine} value={cuisine}>
-                                        {cuisine}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {/* Dish Type */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Dish Type *
-                            </label>
-                            <select
-                                name="dish_type"
-                                value={recipe.dish_type}
-                                onChange={handleInputChange}
-                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                            >
-                                <option value="">Select Dish Type</option>
-                                {dishTypes.map((dishType) => (
-                                    <option key={dishType} value={dishType}>
-                                        {dishType}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {/* Ingredients */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Ingredients *
-                            </label>
-                            {recipe.ingredients.map((ingredient, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center mb-2"
-                                >
-                                    <input
-                                        type="text"
-                                        value={ingredient}
-                                        onChange={(e) =>
-                                            handleIngredientChange(
-                                                index,
-                                                e.target.value
-                                            )
-                                        }
-                                        className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                        placeholder={`Ingredient ${index + 1}`}
-                                    />
-                                    {recipe.ingredients.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                removeIngredient(index)
-                                            }
-                                            className="ml-2 text-red-500 hover:text-red-400"
-                                        >
-                                            <i className="fas fa-trash"></i>
-                                        </button>
+                    <div className="space-y-4">
+                        {isLoadingTags ? (
+                            <p className="text-gray-400">Loading options...</p>
+                        ) : (
+                            <>
+                                {/* Info Box */}
+                                <div className="bg-gray-700 p-4 rounded-lg">
+                                    <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                        Instructions
+                                    </h3>
+                                    <p className="text-gray-400">
+                                        {getInfoBoxContent()}
+                                    </p>
+                                </div>
+                                {/* Add Cuisine */}
+                                {showAddCuisine && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                            Add New Cuisine
+                                        </h3>
+                                        <div className="flex items-center mb-2">
+                                            <input
+                                                type="text"
+                                                value={newCuisine}
+                                                onChange={(e) =>
+                                                    setNewCuisine(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                                placeholder="Enter new cuisine"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddCuisine}
+                                                className="ml-2 text-yellow-500 hover:text-yellow-400"
+                                            >
+                                                <i className="fas fa-plus-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {/* Add Dish Type */}
+                                {showAddDishType && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                            Add New Dish Type
+                                        </h3>
+                                        <div className="flex items-center mb-2">
+                                            <input
+                                                type="text"
+                                                value={newDishType}
+                                                onChange={(e) =>
+                                                    setNewDishType(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                                placeholder="Enter new dish type"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddDishType}
+                                                className="ml-2 text-yellow-500 hover:text-yellow-400"
+                                            >
+                                                <i className="fas fa-plus-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {/* Allergen Tags */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                        Allergens
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {allergens.map((allergen) => (
+                                            <TagBadge
+                                                key={`allergen-${allergen}`}
+                                                badge={{
+                                                    type: "allergen",
+                                                    value: allergen,
+                                                }}
+                                                onRemove={() => {}}
+                                                showRemove={false}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                {/* Dietary Tags */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                        Dietary Tags
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {dietaryTags.map((dietary) => (
+                                            <TagBadge
+                                                key={`dietary-${dietary}`}
+                                                badge={{
+                                                    type: "dietary",
+                                                    value: dietary,
+                                                }}
+                                                onRemove={() => {}}
+                                                showRemove={false}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Right Column: Recipe Form */}
+                <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-white mb-4">
+                        {id
+                            ? `Edit Recipe: ${recipe.title || "Loading..."}`
+                            : "Add Recipe"}
+                    </h2>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                        {validationErrors.form && (
+                            <p className="text-red-500 mb-4">
+                                {validationErrors.form}
+                            </p>
+                        )}
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Title */}
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <label className="block text-yellow-500 mb-1">
+                                        Title *
+                                    </label>
+                                    {validationErrors.title && (
+                                        <p className="text-red-500 text-sm">
+                                            {validationErrors.title}
+                                        </p>
                                     )}
                                 </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={addIngredient}
-                                className="text-yellow-500 hover:text-yellow-400 flex items-center"
-                            >
-                                <i className="fas fa-plus-circle mr-1"></i> Add
-                                Ingredient
-                            </button>
-                        </div>
-                        {/* Instructions */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Instructions *
-                            </label>
-                            <textarea
-                                name="instructions"
-                                value={recipe.instructions}
-                                onChange={handleInputChange}
-                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                placeholder="Enter recipe instructions"
-                                rows={5}
-                            />
-                        </div>
-                        {/* Allergens */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Allergens
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {allergens.map((allergen) => (
-                                    <label
-                                        key={allergen}
-                                        className="flex items-center text-white"
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={recipe.title}
+                                    onChange={handleInputChange}
+                                    onFocus={() => setFocusedField("title")}
+                                    onBlur={() => setFocusedField(null)}
+                                    className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                        validationErrors.title
+                                            ? "border-red-500"
+                                            : "border-gray-600"
+                                    } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                    placeholder="Enter recipe title"
+                                />
+                            </div>
+                            {/* Description */}
+                            <div>
+                                <label className="block text-yellow-500 mb-1">
+                                    Description
+                                </label>
+                                <textarea
+                                    name="description"
+                                    value={recipe.description || ""}
+                                    onChange={handleInputChange}
+                                    onFocus={() =>
+                                        setFocusedField("description")
+                                    }
+                                    onBlur={() => setFocusedField(null)}
+                                    className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                    placeholder="Enter recipe description"
+                                    rows={3}
+                                />
+                            </div>
+                            {/* Cuisine & Dish Type (Same Row) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-yellow-500 mb-1">
+                                            Cuisine *
+                                        </label>
+                                        {validationErrors.cuisine && (
+                                            <p className="text-red-500 text-sm">
+                                                {validationErrors.cuisine}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <select
+                                        name="cuisine"
+                                        value={recipe.cuisine}
+                                        onChange={handleInputChange}
+                                        onFocus={() =>
+                                            setFocusedField("cuisine")
+                                        }
+                                        onBlur={() => setFocusedField(null)}
+                                        className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                            validationErrors.cuisine
+                                                ? "border-red-500"
+                                                : "border-gray-600"
+                                        } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                    >
+                                        <option value="add_cuisine">
+                                            Add Cuisine
+                                        </option>
+                                        {cuisines.map((cuisine) => (
+                                            <option
+                                                key={cuisine}
+                                                value={cuisine}
+                                            >
+                                                {cuisine}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-yellow-500 mb-1">
+                                            Dish Type *
+                                        </label>
+                                        {validationErrors.dish_type && (
+                                            <p className="text-red-500 text-sm">
+                                                {validationErrors.dish_type}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <select
+                                        name="dish_type"
+                                        value={recipe.dish_type}
+                                        onChange={handleInputChange}
+                                        onFocus={() =>
+                                            setFocusedField("dish_type")
+                                        }
+                                        onBlur={() => setFocusedField(null)}
+                                        className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                            validationErrors.dish_type
+                                                ? "border-red-500"
+                                                : "border-gray-600"
+                                        } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                    >
+                                        <option value="add_dish_type">
+                                            Add Dish Type
+                                        </option>
+                                        {dishTypes.map((dishType) => (
+                                            <option
+                                                key={dishType}
+                                                value={dishType}
+                                            >
+                                                {dishType}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            {/* Ingredients */}
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <label className="block text-yellow-500 mb-1">
+                                        Ingredients *
+                                    </label>
+                                    {validationErrors.ingredients && (
+                                        <p className="text-red-500 text-sm">
+                                            {validationErrors.ingredients}
+                                        </p>
+                                    )}
+                                </div>
+                                {recipe.ingredients.map((ingredient, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center mb-2"
                                     >
                                         <input
-                                            type="checkbox"
-                                            checked={selectedAllergens.includes(
-                                                allergen
-                                            )}
-                                            onChange={() =>
-                                                handleAllergenChange(allergen)
+                                            type="text"
+                                            value={ingredient}
+                                            onChange={(e) =>
+                                                handleIngredientChange(
+                                                    index,
+                                                    e.target.value
+                                                )
                                             }
-                                            className="mr-1"
-                                        />
-                                        {allergen}
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                        {/* Dietary Tags */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Dietary Tags
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {dietaryTags.map((tag) => (
-                                    <label
-                                        key={tag}
-                                        className="flex items-center text-white"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedDietaryTags.includes(
-                                                tag
-                                            )}
-                                            onChange={() =>
-                                                handleDietaryTagChange(tag)
+                                            onFocus={() =>
+                                                setFocusedField("ingredients")
                                             }
-                                            className="mr-1"
+                                            onBlur={() => setFocusedField(null)}
+                                            className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                                validationErrors.ingredients
+                                                    ? "border-red-500"
+                                                    : "border-gray-600"
+                                            } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                            placeholder={`Ingredient ${
+                                                index + 1
+                                            }`}
                                         />
-                                        {tag}
-                                    </label>
+                                        {recipe.ingredients.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    removeIngredient(index)
+                                                }
+                                                className="ml-2 text-red-500 hover:text-red-400"
+                                            >
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 ))}
+                                <button
+                                    type="button"
+                                    onClick={addIngredient}
+                                    className="text-yellow-500 hover:text-yellow-400 flex items-center"
+                                >
+                                    <i className="fas fa-plus-circle mr-1"></i>{" "}
+                                    Add Ingredient
+                                </button>
                             </div>
-                        </div>
-                        {/* Image URL (Placeholder for File Upload) */}
-                        <div>
-                            <label className="block text-white mb-1">
-                                Image URL
-                            </label>
-                            <input
-                                type="text"
-                                name="image_url"
-                                value={recipe.image_url || ""}
-                                onChange={handleInputChange}
-                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                placeholder="Enter image URL or leave blank for default"
-                            />
-                        </div>
-                        {/* Submit Button */}
-                        <div className="flex space-x-2">
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className={`chef-master-btn ${
-                                    isSubmitting
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : ""
-                                }`}
-                            >
-                                {isSubmitting
-                                    ? "Saving..."
-                                    : id
-                                    ? "Update Recipe"
-                                    : "Add Recipe"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => navigate("/recipes")}
-                                className="close-btn"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
+                            {/* Instructions */}
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <label className="block text-yellow-500 mb-1">
+                                        Instructions *
+                                    </label>
+                                    {validationErrors.instructions && (
+                                        <p className="text-red-500 text-sm">
+                                            {validationErrors.instructions}
+                                        </p>
+                                    )}
+                                </div>
+                                <textarea
+                                    name="instructions"
+                                    value={recipe.instructions}
+                                    onChange={handleInputChange}
+                                    onFocus={() =>
+                                        setFocusedField("instructions")
+                                    }
+                                    onBlur={() => setFocusedField(null)}
+                                    className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                        validationErrors.instructions
+                                            ? "border-red-500"
+                                            : "border-gray-600"
+                                    } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                    placeholder="Enter recipe instructions"
+                                    rows={5}
+                                />
+                            </div>
+                            {/* Allergens & Dietary Tags (Same Row) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-yellow-500 mb-1">
+                                        Allergens
+                                    </label>
+                                    <TagBox
+                                        appliedTags={selectedTags}
+                                        setAppliedTags={setSelectedTags}
+                                        tagType="allergen"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-yellow-500 mb-1">
+                                        Dietary Tags
+                                    </label>
+                                    <TagBox
+                                        appliedTags={selectedTags}
+                                        setAppliedTags={setSelectedTags}
+                                        tagType="dietary"
+                                    />
+                                </div>
+                            </div>
+                            {/* Image Input */}
+                            <div>
+                                <label className="block text-yellow-500 mb-1">
+                                    Recipe Image
+                                </label>
+                                <div className="bg-gray-800 p-4 rounded-lg">
+                                    {/* Tabs for Upload/URL */}
+                                    <div className="flex border-b border-gray-600 mb-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setImageMode("upload");
+                                                setImagePreview(null);
+                                                setImageFile(null);
+                                                setImageUrlError("");
+                                                setRecipe((prev) => ({
+                                                    ...prev,
+                                                    image_url: "",
+                                                }));
+                                            }}
+                                            className={`p-2 ${
+                                                imageMode === "upload"
+                                                    ? "bg-gray-700"
+                                                    : "bg-gray-900"
+                                            } rounded-t-lg`}
+                                        >
+                                            Upload Image
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setImageMode("url");
+                                                setImageFile(null);
+                                                setImagePreview(null);
+                                                setImageUrlError("");
+                                            }}
+                                            className={`p-2 ${
+                                                imageMode === "url"
+                                                    ? "bg-gray-700"
+                                                    : "bg-gray-900"
+                                            } rounded-t-lg`}
+                                        >
+                                            Enter URL
+                                        </button>
+                                    </div>
+                                    {imageMode === "upload" ? (
+                                        <div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                onFocus={() =>
+                                                    setFocusedField("image_url")
+                                                }
+                                                onBlur={() =>
+                                                    setFocusedField(null)
+                                                }
+                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                            />
+                                            {imageFile && (
+                                                <p className="text-gray-400 mt-2">
+                                                    {imageFile.name} (
+                                                    {(
+                                                        imageFile.size / 1024
+                                                    ).toFixed(2)}{" "}
+                                                    KB)
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                name="image_url"
+                                                value={recipe.image_url || ""}
+                                                onChange={handleImageUrlChange}
+                                                onFocus={() =>
+                                                    setFocusedField("image_url")
+                                                }
+                                                onBlur={() =>
+                                                    setFocusedField(null)
+                                                }
+                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                                placeholder="https://example.com/image.jpg"
+                                            />
+                                            {imageUrlError && (
+                                                <p className="text-red-500 mt-2">
+                                                    {imageUrlError}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                    {/* Image Preview */}
+                                    <div className="mt-4">
+                                        <label className="block text-white mb-2">
+                                            Preview
+                                        </label>
+                                        <div className="recipe-photo max-w-[300px] mx-auto">
+                                            <img
+                                                src={
+                                                    imagePreview ||
+                                                    placeholderPopup
+                                                }
+                                                alt="Recipe Preview"
+                                                className="rounded-lg"
+                                            />
+                                        </div>
+                                        {!imagePreview && (
+                                            <p className="text-gray-400 text-center mt-2">
+                                                Default Image
+                                            </p>
+                                        )}
+                                        {imagePreview && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setImageFile(null);
+                                                    setImagePreview(null);
+                                                    setImageUrlError("");
+                                                    setRecipe((prev) => ({
+                                                        ...prev,
+                                                        image_url: "",
+                                                    }));
+                                                }}
+                                                className="text-red-500 hover:text-red-400 mt-2 flex mx-auto"
+                                            >
+                                                <i className="fas fa-trash mr-1"></i>{" "}
+                                                Remove Image
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Submit Button */}
+                            <div className="flex space-x-2">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className={`chef-master-btn ${
+                                        isSubmitting
+                                            ? "opacity-50 cursor-not-allowed"
+                                            : ""
+                                    }`}
+                                >
+                                    {isSubmitting
+                                        ? "Saving..."
+                                        : id
+                                        ? "Update Recipe"
+                                        : "Add Recipe"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => navigate("/recipes")}
+                                    className="close-btn"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
+        </DndProvider>
     );
 };
 
