@@ -334,25 +334,48 @@ span.badge.bg-red-500 {
     margin-top: 0.5rem !important; /* Add space between title and badges */
 }
 
-/* Photo styling with 3D mustard border */
-.recipe-photo,
+/* Photo styling with scalable 3D border matching buttons */
+.recipe-photo {
+    position: relative;
+    display: flex;
+    justify-content: center; /* Center the image within the wrapper */
+}
+
 .recipe-card-photo {
-    border: 3px solid transparent !important;
-    background: linear-gradient(
-        to bottom,
-        #fbbf24,
-        #d97706
-    ) !important; /* Mustard gradient border */
+    position: relative;
+    background: #fbbf24 !important; /* Solid mustard color */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
-    padding: 4px !important; /* Space between image and border */
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow matching buttons */
+    padding: min(
+        2%,
+        4px
+    ) !important; /* Scalable padding with minimum 4px for smaller images */
+}
+
+/* Add a pseudo-element for the border with reduced thickness */
+.recipe-photo img::before,
+.recipe-card-photo::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 0.5px solid #d97706 !important; /* Reduced border thickness for better scaling */
+    pointer-events: none; /* Ensure the border doesn't interfere with interactions */
 }
 
 .recipe-photo img {
-    width: 100% !important;
+    width: 80% !important; /* Reduced to 80% of popup width (~538px) */
     height: auto !important;
     border-radius: 8px !important;
     display: block !important;
+    position: relative; /* Ensure z-index works */
+    z-index: 1; /* Place image above the pseudo-element border */
+    background: #fbbf24 !important; /* Solid mustard color */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow matching buttons */
+    padding: min(2%, 4px) !important; /* Scalable padding with minimum 4px */
 }
 
 .recipe-card-photo img {
@@ -361,4 +384,6 @@ span.badge.bg-red-500 {
     object-fit: cover !important;
     border-radius: 8px !important;
     display: block !important;
+    position: relative; /* Ensure z-index works */
+    z-index: 1; /* Place image above the pseudo-element border */
 }
