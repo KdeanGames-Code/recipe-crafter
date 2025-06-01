@@ -30,21 +30,21 @@ button.favorite-btn,
 button.chef-master-btn,
 button.edit-recipe-btn,
 button.close-btn {
-    background: linear-gradient(
-        to bottom,
-        #4b5563,
-        #374151
-    ) !important; /* Gradient: bg-gray-600 to bg-gray-700 */
     border: 1px solid #2d3748 !important; /* border-gray-800 for depth */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
         -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
     transition: all 0.2s ease !important;
+    color: #ffffff !important; /* text-white for all buttons */
 }
 
 button.favorite-btn {
     padding: 0.5rem !important; /* p-2 */
     border-radius: 9999px !important; /* rounded-full */
-    color: #60a5fa !important; /* text-blue-400 */
+    background: linear-gradient(
+        to bottom,
+        #3b82f6,
+        #2563eb
+    ) !important; /* Blue gradient for favorite button */
 }
 
 button.chef-master-btn,
@@ -59,15 +59,27 @@ button.close-btn {
 }
 
 button.chef-master-btn {
-    color: #60a5fa !important; /* text-blue-400 */
+    background: linear-gradient(
+        to bottom,
+        #3b82f6,
+        #2563eb
+    ) !important; /* Blue gradient */
 }
 
 button.edit-recipe-btn {
-    color: #b91c1c !important; /* bg-red-700 equivalent for text */
+    background: linear-gradient(
+        to bottom,
+        #b91c1c,
+        #7f1d1d
+    ) !important; /* Red gradient */
 }
 
 button.close-btn {
-    color: #9ca3af !important; /* bg-gray-500 equivalent for text */
+    background: linear-gradient(
+        to bottom,
+        #6b7280,
+        #4b5563
+    ) !important; /* Gray gradient */
 }
 
 button.favorite-btn:hover,
@@ -80,15 +92,27 @@ button.close-btn:hover {
 }
 
 button.chef-master-btn:hover {
-    color: #93c5fd !important; /* hover:text-blue-300 */
+    background: linear-gradient(
+        to bottom,
+        #60a5fa,
+        #3b82f6
+    ) !important; /* Lighter blue gradient on hover */
 }
 
 button.edit-recipe-btn:hover {
-    color: #dc2626 !important; /* hover:bg-red-600 equivalent for text */
+    background: linear-gradient(
+        to bottom,
+        #dc2626,
+        #b91c1c
+    ) !important; /* Lighter red gradient on hover */
 }
 
 button.close-btn:hover {
-    color: #d1d5db !important; /* hover:bg-gray-400 equivalent for text */
+    background: linear-gradient(
+        to bottom,
+        #9ca3af,
+        #6b7280
+    ) !important; /* Lighter gray gradient on hover */
 }
 
 button.favorite-btn:active,
