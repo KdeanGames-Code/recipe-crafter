@@ -758,11 +758,12 @@ const Recipes = () => {
                         >
                             <i className="fas fa-times text-xl"></i>
                         </button>
-                        <h2 className="recipe-title text-yellow-500 mb-6">
-                            <i className="fas fa-utensils text-yellow-500"></i>
-                            {selectedRecipe.title}
-                            <i className="fas fa-utensils text-yellow-500"></i>
-                        </h2>
+                        <div className="recipe-title-container">
+                            <h2 className="recipe-title text-yellow-500">
+                                <i className="fas fa-utensils text-yellow-500"></i>
+                                {selectedRecipe.title}
+                            </h2>
+                        </div>
                         <div className="space-y-6">
                             <div>
                                 <h3 className="recipe-section-header">
@@ -773,58 +774,64 @@ const Recipes = () => {
                                         "No description"}
                                 </p>
                             </div>
-                            <div>
-                                <h3 className="recipe-section-header">
-                                    Cuisine
-                                </h3>
-                                <p className="text-gray-400">
-                                    {selectedRecipe.cuisine || "N/A"}
-                                </p>
-                            </div>
-                            <div>
-                                <h3 className="recipe-section-header">
-                                    Dish Type
-                                </h3>
-                                <p className="text-gray-400">
-                                    {selectedRecipe.dish_type || "N/A"}
-                                </p>
-                            </div>
-                            <div>
-                                <h3 className="recipe-section-header">
-                                    Allergens
-                                </h3>
-                                <div className="flex space-x-2">
-                                    {(recipeTags[selectedRecipe.id] || [])
-                                        .filter(
-                                            (tag) => tag.tag_type === "allergen"
-                                        )
-                                        .map((tag) => (
-                                            <span
-                                                key={tag.tag_name}
-                                                className="badge bg-red-500"
-                                            >
-                                                {tag.tag_name}
-                                            </span>
-                                        ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <h3 className="recipe-section-header">
+                                        Cuisine
+                                    </h3>
+                                    <p className="text-gray-400">
+                                        {selectedRecipe.cuisine || "N/A"}
+                                    </p>
+                                </div>
+                                <div>
+                                    <h3 className="recipe-section-header">
+                                        Dish Type
+                                    </h3>
+                                    <p className="text-gray-400">
+                                        {selectedRecipe.dish_type || "N/A"}
+                                    </p>
                                 </div>
                             </div>
-                            <div>
-                                <h3 className="recipe-section-header">
-                                    Dietary Tags
-                                </h3>
-                                <div className="flex space-x-2">
-                                    {(recipeTags[selectedRecipe.id] || [])
-                                        .filter(
-                                            (tag) => tag.tag_type === "dietary"
-                                        )
-                                        .map((tag) => (
-                                            <span
-                                                key={tag.tag_name}
-                                                className="badge bg-blue-500"
-                                            >
-                                                {tag.tag_name}
-                                            </span>
-                                        ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <h3 className="recipe-section-header">
+                                        Allergens
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(recipeTags[selectedRecipe.id] || [])
+                                            .filter(
+                                                (tag) =>
+                                                    tag.tag_type === "allergen"
+                                            )
+                                            .map((tag) => (
+                                                <span
+                                                    key={tag.tag_name}
+                                                    className="badge bg-red-500"
+                                                >
+                                                    {tag.tag_name}
+                                                </span>
+                                            ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="recipe-section-header">
+                                        Dietary Tags
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(recipeTags[selectedRecipe.id] || [])
+                                            .filter(
+                                                (tag) =>
+                                                    tag.tag_type === "dietary"
+                                            )
+                                            .map((tag) => (
+                                                <span
+                                                    key={tag.tag_name}
+                                                    className="badge bg-blue-500"
+                                                >
+                                                    {tag.tag_name}
+                                                </span>
+                                            ))}
+                                    </div>
                                 </div>
                             </div>
                             <div>

@@ -119,7 +119,7 @@ div.badge {
     color: #ffffff !important; /* text-white */
     border: 1px solid rgba(0, 0, 0, 0.2) !important; /* Subtle border for depth */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+        -2px -2px 4px rgba(255, 255, 252, 0.05) !important; /* 3D shadow */
     transition: all 0.2s ease !important;
 }
 
@@ -245,6 +245,14 @@ span.badge.bg-red-500 {
         #d97706
     ); /* 3D bottom border with yellow gradient */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Recipe title container */
+.recipe-title-container {
+    background: #111827 !important; /* bg-gray-950, darker than bg-gray-900 */
+    padding: 1rem !important;
+    border-radius: 8px !important;
+    margin-bottom: 1.5rem !important;
 }
 
 /* Recipe title styling */
