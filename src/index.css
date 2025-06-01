@@ -34,7 +34,7 @@ button.close-btn {
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
         -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
     transition: all 0.2s ease !important;
-    color: #ffffff !important; /* text-white for all buttons */
+    color: #ffffff !important; /* text-white for all buttons except favorite-btn */
 }
 
 button.favorite-btn {
@@ -42,9 +42,9 @@ button.favorite-btn {
     border-radius: 9999px !important; /* rounded-full */
     background: linear-gradient(
         to bottom,
-        #3b82f6,
-        #2563eb
-    ) !important; /* Blue gradient for favorite button */
+        #4b5563,
+        #374151
+    ) !important; /* Gray gradient for favorite button */
 }
 
 button.chef-master-btn,
@@ -124,7 +124,7 @@ button.close-btn:active {
 }
 
 i.favorite-icon {
-    color: inherit !important; /* Inherit from parent button */
+    color: #9ca3af !important; /* text-gray-400 */
 }
 
 i.favorite-icon.favorited {
@@ -332,4 +332,33 @@ span.badge.bg-red-500 {
 .allergen-tags,
 .dietary-tags {
     margin-top: 0.5rem !important; /* Add space between title and badges */
+}
+
+/* Photo styling with 3D mustard border */
+.recipe-photo,
+.recipe-card-photo {
+    border: 3px solid transparent !important;
+    background: linear-gradient(
+        to bottom,
+        #fbbf24,
+        #d97706
+    ) !important; /* Mustard gradient border */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    padding: 4px !important; /* Space between image and border */
+}
+
+.recipe-photo img {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 8px !important;
+    display: block !important;
+}
+
+.recipe-card-photo img {
+    width: 100px !important; /* Thumbnail size */
+    height: 100px !important;
+    object-fit: cover !important;
+    border-radius: 8px !important;
+    display: block !important;
 }

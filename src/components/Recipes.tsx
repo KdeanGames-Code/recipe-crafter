@@ -4,6 +4,7 @@ import axios from "axios";
 import { Resizable } from "react-resizable";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import API_BASE_URL from "../config/apiConfig"; // Import the centralized API base URL
 
 interface Recipe {
     id: number;
@@ -14,6 +15,7 @@ interface Recipe {
     dish_type: string;
     ingredients?: string[];
     instructions?: string;
+    image_url?: string;
 }
 
 interface Tag {
@@ -248,7 +250,7 @@ const Recipes = () => {
 
     useEffect(() => {
         axios
-            .get("http://127.0.0.1:3000/api/tags")
+            .get(`${API_BASE_URL}/tags`)
             .then((response) => {
                 console.log("Fetched Tags:", response.data);
                 const allergenTags = response.data
@@ -276,7 +278,7 @@ const Recipes = () => {
 
     useEffect(() => {
         axios
-            .get("http://127.0.0.1:3000/api/recipes")
+            .get(`${API_BASE_URL}/recipes`)
             .then((response) => {
                 console.log("Recipes:", response.data);
                 if (response.data.length === 0) {
@@ -296,6 +298,8 @@ const Recipes = () => {
                             "Step 8. Additional step to make the content longer.\n" +
                             "Step 9. Another step to ensure overflow.\n" +
                             "Step 10. Final step for good measure.",
+                        image_url:
+                            "https://images.unsplash.com/photo-1556910103-1c02745aae4f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200&q=80", // Updated placeholder image
                     })
                 );
                 setRecipes(recipesWithIngredients);
@@ -328,9 +332,7 @@ const Recipes = () => {
                 Promise.all(
                     recipesWithIngredients.map((recipe: Recipe) =>
                         axios
-                            .get(
-                                `http://127.0.0.1:3000/api/recipe-tags/${recipe.id}`
-                            )
+                            .get(`${API_BASE_URL}/recipe-tags/${recipe.id}`)
                             .then((tagResponse) => {
                                 console.log(
                                     `Tags for recipe ${recipe.id} (${recipe.title}):`,
@@ -375,7 +377,7 @@ const Recipes = () => {
 
     useEffect(() => {
         axios
-            .get("http://127.0.0.1:3000/api/favorites")
+            .get(`${API_BASE_URL}/favorites`)
             .then((response) => {
                 console.log("Favorites:", response.data);
                 const userFavorites = response.data
@@ -399,16 +401,14 @@ const Recipes = () => {
         if (favorites.includes(recipeId)) {
             setFavorites(favorites.filter((id) => id !== recipeId));
             axios
-                .delete(
-                    `http://127.0.0.1:3000/api/favorites/${userId}/${recipeId}`
-                )
+                .delete(`${API_BASE_URL}/favorites/${userId}/${recipeId}`)
                 .catch((error) =>
                     console.error("Error removing favorite:", error)
                 );
         } else {
             setFavorites([...favorites, recipeId]);
             axios
-                .post("http://127.0.0.1:3000/api/favorites", {
+                .post(`${API_BASE_URL}/favorites`, {
                     user_id: userId,
                     recipe_id: recipeId,
                 })
@@ -670,21 +670,35 @@ const Recipes = () => {
                                             setSelectedRecipe(recipe)
                                         }
                                     >
-                                        <h2 className="text-lg font-semibold text-yellow-500">
-                                            {recipe.title}
-                                        </h2>
-                                        <p className="text-sm text-gray-400">
-                                            {recipe.description ||
-                                                "No description"}
-                                        </p>
-                                        <p className="text-sm text-gray-400 italic mt-1">
-                                            Cuisine: {recipe.cuisine || "N/A"}
-                                        </p>
-                                        <p className="text-sm text-gray-400 italic mt-1">
-                                            Dish Type:{" "}
-                                            {recipe.dish_type || "N/A"}
-                                        </p>
-                                        <div className="flex space-x-2 mt-2">
+                                        <div className="flex space-x-4">
+                                            {/* Left Side: Title, Description, Cuisine, Dish Type */}
+                                            <div className="flex-1">
+                                                <h2 className="text-lg font-semibold text-yellow-500">
+                                                    {recipe.title}
+                                                </h2>
+                                                <p className="text-sm text-gray-400">
+                                                    {recipe.description ||
+                                                        "No description"}
+                                                </p>
+                                                <p className="text-sm text-gray-400 italic mt-1">
+                                                    Cuisine:{" "}
+                                                    {recipe.cuisine || "N/A"}
+                                                </p>
+                                                <p className="text-sm text-gray-400 italic mt-1">
+                                                    Dish Type:{" "}
+                                                    {recipe.dish_type || "N/A"}
+                                                </p>
+                                            </div>
+                                            {/* Right Side: Thumbnail Photo */}
+                                            <div className="recipe-card-photo">
+                                                <img
+                                                    src={recipe.image_url}
+                                                    alt={recipe.title}
+                                                />
+                                            </div>
+                                        </div>
+                                        {/* Full Row: Allergens and Dietary Tags */}
+                                        <div className="flex flex-wrap gap-2 mt-2">
                                             {recipeAllergens.length > 0 && (
                                                 <span className="badge bg-red-500">
                                                     {recipeAllergens.join(", ")}
@@ -696,6 +710,7 @@ const Recipes = () => {
                                                 </span>
                                             )}
                                         </div>
+                                        {/* Rating Stars */}
                                         <div className="flex space-x-1 mt-2">
                                             {[...Array(5)].map((_, i) => (
                                                 <i
@@ -711,6 +726,7 @@ const Recipes = () => {
                                                 ></i>
                                             ))}
                                         </div>
+                                        {/* Favorites and Chef Master Buttons */}
                                         <div className="flex space-x-2 mt-2">
                                             <button
                                                 onClick={(e) => {
@@ -736,7 +752,7 @@ const Recipes = () => {
                                                 }
                                             >
                                                 <button className="chef-master-btn">
-                                                    Start Chef Master
+                                                    Chef Master
                                                 </button>
                                             </Link>
                                         </div>
@@ -765,6 +781,13 @@ const Recipes = () => {
                             </h2>
                         </div>
                         <div className="space-y-6">
+                            {/* Photo Above Description */}
+                            <div className="recipe-photo">
+                                <img
+                                    src={selectedRecipe.image_url}
+                                    alt={selectedRecipe.title}
+                                />
+                            </div>
                             <div>
                                 <h3 className="recipe-section-header">
                                     Description
