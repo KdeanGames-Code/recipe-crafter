@@ -75,9 +75,11 @@ const FilterBadge = ({
 const FilterBox = ({
     appliedFilters,
     setAppliedFilters,
+    setFilterOptions,
 }: {
     appliedFilters: FilterBadge[];
     setAppliedFilters: React.Dispatch<React.SetStateAction<FilterBadge[]>>;
+    setFilterOptions: React.Dispatch<React.SetStateAction<FilterBadge[]>>;
 }) => {
     const filterBoxRef = useRef<HTMLDivElement>(null);
 
@@ -91,6 +93,16 @@ const FilterBox = ({
                 )
             ) {
                 setAppliedFilters((prev) => [...prev, item]);
+                // Remove the item from filterOptions
+                setFilterOptions((prev) =>
+                    prev.filter(
+                        (option) =>
+                            !(
+                                option.type === item.type &&
+                                option.value === item.value
+                            )
+                    )
+                );
             }
         },
         collect: (monitor) => ({
@@ -109,6 +121,10 @@ const FilterBox = ({
                         filter.value === badge.value
                     )
             )
+        );
+        // Add the item back to filterOptions
+        setFilterOptions((prev) =>
+            [...prev, badge].sort((a, b) => a.value.localeCompare(b.value))
         );
     };
 
@@ -138,9 +154,11 @@ const FilterBox = ({
 const FilterOptions = ({
     filterOptions,
     setAppliedFilters,
+    setFilterOptions,
 }: {
     filterOptions: FilterBadge[];
     setAppliedFilters: React.Dispatch<React.SetStateAction<FilterBadge[]>>;
+    setFilterOptions: React.Dispatch<React.SetStateAction<FilterBadge[]>>;
 }) => {
     const optionsBoxRef = useRef<HTMLDivElement>(null);
 
@@ -155,6 +173,10 @@ const FilterOptions = ({
                             filter.value === item.value
                         )
                 )
+            );
+            // Add the item back to filterOptions
+            setFilterOptions((prev) =>
+                [...prev, item].sort((a, b) => a.value.localeCompare(b.value))
             );
         },
         collect: (monitor) => ({
@@ -510,12 +532,14 @@ const Recipes = () => {
                                 <FilterOptions
                                     filterOptions={filterOptions}
                                     setAppliedFilters={setAppliedFilters}
+                                    setFilterOptions={setFilterOptions}
                                 />
                             </div>
                             <div className="mt-4">
                                 <FilterBox
                                     appliedFilters={appliedFilters}
                                     setAppliedFilters={setAppliedFilters}
+                                    setFilterOptions={setFilterOptions}
                                 />
                             </div>
                             <div className="mt-4">
