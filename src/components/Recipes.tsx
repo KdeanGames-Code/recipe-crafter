@@ -12,6 +12,7 @@ interface Recipe {
     average_rating: number;
     cuisine: string;
     dish_type: string;
+    ingredients?: string[]; // Mock field for ingredients
 }
 
 interface Tag {
@@ -61,6 +62,8 @@ const FilterBadge = ({
                     ? "bg-red-500"
                     : badge.type === "dietary"
                     ? "bg-blue-500"
+                    : badge.type === "ingredient"
+                    ? "bg-yellow-500"
                     : "bg-blue-500"
             } ${isDragging ? "opacity-50" : ""}`}
             style={{ cursor: "move" }}
@@ -97,16 +100,18 @@ const FilterBox = ({
                 )
             ) {
                 setAppliedFilters((prev) => [...prev, item]);
-                // Remove the item from filterOptions
-                setFilterOptions((prev) =>
-                    prev.filter(
-                        (option) =>
-                            !(
-                                option.type === item.type &&
-                                option.value === item.value
-                            )
-                    )
-                );
+                // Remove the item from filterOptions if it's not an ingredient
+                if (item.type !== "ingredient") {
+                    setFilterOptions((prev) =>
+                        prev.filter(
+                            (option) =>
+                                !(
+                                    option.type === item.type &&
+                                    option.value === item.value
+                                )
+                        )
+                    );
+                }
             }
         },
         collect: (monitor) => ({
@@ -126,10 +131,12 @@ const FilterBox = ({
                     )
             )
         );
-        // Add the item back to filterOptions
-        setFilterOptions((prev) =>
-            [...prev, badge].sort((a, b) => a.value.localeCompare(b.value))
-        );
+        // Add the item back to filterOptions if it's not an ingredient
+        if (badge.type !== "ingredient") {
+            setFilterOptions((prev) =>
+                [...prev, badge].sort((a, b) => a.value.localeCompare(b.value))
+            );
+        }
     };
 
     return (
@@ -179,10 +186,14 @@ const FilterOptions = ({
                         )
                 )
             );
-            // Add the item back to filterOptions
-            setFilterOptions((prev) =>
-                [...prev, item].sort((a, b) => a.value.localeCompare(b.value))
-            );
+            // Add the item back to filterOptions if it's not an ingredient
+            if (item.type !== "ingredient") {
+                setFilterOptions((prev) =>
+                    [...prev, item].sort((a, b) =>
+                        a.value.localeCompare(b.value)
+                    )
+                );
+            }
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -228,6 +239,7 @@ const Recipes = () => {
     const [filterCategory, setFilterCategory] = useState<string>("cuisine");
     const [appliedFilters, setAppliedFilters] = useState<FilterBadge[]>([]);
     const [filterOptions, setFilterOptions] = useState<FilterBadge[]>([]);
+    const [ingredientInput, setIngredientInput] = useState<string>("");
     const [sidebarWidth, setSidebarWidth] = useState(300);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [isLoadingTags, setIsLoadingTags] = useState(true);
@@ -271,19 +283,26 @@ const Recipes = () => {
                 if (response.data.length === 0) {
                     setErrorMessage("No recipes found in the database.");
                 }
-                setRecipes(response.data);
-                setFilteredRecipes(response.data);
+                // Mock ingredients for now since the API doesn't provide them
+                const recipesWithIngredients = response.data.map(
+                    (recipe: Recipe) => ({
+                        ...recipe,
+                        ingredients: ["mock_ingredient_1", "mock_ingredient_2"], // Replace with real data when available
+                    })
+                );
+                setRecipes(recipesWithIngredients);
+                setFilteredRecipes(recipesWithIngredients);
 
                 const uniqueCuisines = [
                     ...new Set(
-                        response.data
+                        recipesWithIngredients
                             .map((recipe: Recipe) => recipe.cuisine)
                             .filter(Boolean)
                     ),
                 ] as string[];
                 const uniqueDishTypes = [
                     ...new Set(
-                        response.data
+                        recipesWithIngredients
                             .map((recipe: Recipe) => recipe.dish_type)
                             .filter(Boolean)
                     ),
@@ -299,7 +318,7 @@ const Recipes = () => {
                 );
 
                 Promise.all(
-                    response.data.map((recipe: Recipe) =>
+                    recipesWithIngredients.map((recipe: Recipe) =>
                         axios
                             .get(
                                 `http://127.0.0.1:3000/api/recipe-tags/${recipe.id}`
@@ -434,6 +453,16 @@ const Recipes = () => {
                     return recipeDietary.includes(filter.value);
                 });
             }
+            if (filter.type === "ingredient") {
+                filtered = filtered.filter((recipe) => {
+                    const recipeIngredients = (recipe.ingredients || []).map(
+                        (ingredient) => ingredient.toLowerCase()
+                    );
+                    return recipeIngredients.includes(
+                        filter.value.toLowerCase()
+                    );
+                });
+            }
         });
 
         setFilteredRecipes(filtered);
@@ -461,6 +490,8 @@ const Recipes = () => {
                 setFilterOptions(
                     dietaryTags.map((value) => ({ type: "dietary", value }))
                 );
+            } else if (filterCategory === "ingredient") {
+                setFilterOptions([]); // Ingredients are added via input, not preloaded
             }
         }
     }, [
@@ -474,6 +505,20 @@ const Recipes = () => {
 
     const handleCategoryChange = (category: string) => {
         setFilterCategory(category);
+        setIngredientInput(""); // Clear ingredient input when changing categories
+    };
+
+    const handleIngredientInput = (
+        e: React.KeyboardEvent<HTMLInputElement>
+    ) => {
+        if (e.key === "Enter" && ingredientInput.trim()) {
+            const newBadge: FilterBadge = {
+                type: "ingredient",
+                value: ingredientInput.trim(),
+            };
+            setAppliedFilters((prev) => [...prev, newBadge]);
+            setIngredientInput(""); // Clear the input after adding
+        }
     };
 
     const handleResize = (
@@ -528,18 +573,36 @@ const Recipes = () => {
                                             Allergens
                                         </option>
                                         <option value="dietary">Dietary</option>
+                                        <option value="ingredient">
+                                            Ingredients
+                                        </option>
                                     </select>
                                 )}
                             </div>
                             <div className="mt-4">
                                 <h3 className="text-lg font-semibold text-white mb-2">
-                                    Filter Options
+                                    {filterCategory === "ingredient"
+                                        ? "Add Ingredients"
+                                        : "Filter Options"}
                                 </h3>
-                                <FilterOptions
-                                    filterOptions={filterOptions}
-                                    setAppliedFilters={setAppliedFilters}
-                                    setFilterOptions={setFilterOptions}
-                                />
+                                {filterCategory === "ingredient" ? (
+                                    <input
+                                        type="text"
+                                        placeholder="Type ingredient and press Enter..."
+                                        className="p-3 bg-gray-700 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        value={ingredientInput}
+                                        onChange={(e) =>
+                                            setIngredientInput(e.target.value)
+                                        }
+                                        onKeyPress={handleIngredientInput}
+                                    />
+                                ) : (
+                                    <FilterOptions
+                                        filterOptions={filterOptions}
+                                        setAppliedFilters={setAppliedFilters}
+                                        setFilterOptions={setFilterOptions}
+                                    />
+                                )}
                             </div>
                             <div className="mt-4">
                                 <FilterBox
