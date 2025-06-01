@@ -231,7 +231,7 @@ const Recipes = () => {
     const [favorites, setFavorites] = useState<number[]>([]);
     const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
     const [cuisines, setCuisines] = useState<string[]>([]);
-    const [dishTypes, setDishTypes] = useState<string[]>([]); // Fixed: Renamed setCuisines to setDishTypes
+    const [dishTypes, setDishTypes] = useState<string[]>([]);
     const [allergens, setAllergens] = useState<string[]>([]);
     const [dietaryTags, setDietaryTags] = useState<string[]>([]);
     const [filterCategory, setFilterCategory] = useState<string>("cuisine");
@@ -316,7 +316,7 @@ const Recipes = () => {
                     ),
                 ] as string[];
                 setCuisines(uniqueCuisines);
-                setDishTypes(uniqueDishTypes); // Fixed: Use setDishTypes
+                setDishTypes(uniqueDishTypes);
 
                 setFilterOptions(
                     uniqueCuisines.map((cuisine) => ({
@@ -367,7 +367,7 @@ const Recipes = () => {
                 setRecipes([]);
                 setFilteredRecipes([]);
                 setCuisines([]);
-                setDishTypes([]); // Fixed: Use setDishTypes
+                setDishTypes([]);
                 setFilterOptions([]);
                 setIsLoadingRecipes(false);
             });
@@ -850,10 +850,40 @@ const Recipes = () => {
                                 <h3 className="recipe-section-header">
                                     Instructions
                                 </h3>
-                                <p className="text-gray-400 whitespace-pre-line">
-                                    {selectedRecipe.instructions ||
-                                        "No instructions"}
-                                </p>
+                                <div className="instructions-container">
+                                    {(
+                                        selectedRecipe.instructions ||
+                                        "No instructions"
+                                    )
+                                        .split("\n")
+                                        .map((line, index) => {
+                                            const match = line.match(
+                                                /^(Step \d+\.)\s*(.*)$/
+                                            );
+                                            if (match) {
+                                                const [, step, instruction] =
+                                                    match;
+                                                return (
+                                                    <p key={index}>
+                                                        <span className="instruction-step">
+                                                            {step}
+                                                        </span>{" "}
+                                                        <span className="instruction-text">
+                                                            {instruction}
+                                                        </span>
+                                                    </p>
+                                                );
+                                            }
+                                            return (
+                                                <p
+                                                    key={index}
+                                                    className="instruction-text"
+                                                >
+                                                    {line}
+                                                </p>
+                                            );
+                                        })}
+                                </div>
                             </div>
                             <div>
                                 <h3 className="recipe-section-header">

@@ -239,20 +239,7 @@ span.badge.bg-red-500 {
     overflow-y: auto !important; /* Ensure vertical scrolling */
 }
 
-.recipe-popup::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(
-        to top,
-        #fbbf24,
-        #d97706
-    ); /* 3D bottom border with yellow gradient */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
+/* Removed the mustard bottom border by removing the ::after pseudo-element */
 
 /* Recipe title container */
 .recipe-title-container {
@@ -280,6 +267,26 @@ span.badge.bg-red-500 {
     font-size: 1.25rem !important; /* text-xl */
     color: #fbbf24 !important; /* text-yellow-500 */
     border-bottom: 2px solid #111827 !important; /* Darker than bg-gray-900 (#1F2937) */
+    box-shadow: 1px 1px 2px #1f2937, -1px -1px 2px #0d1216 !important; /* 3D effect with lighter and darker shades */
     padding-bottom: 0.25rem !important;
     margin-bottom: 1rem !important;
+}
+
+/* Instructions container to match Nutrition Facts */
+.instructions-container {
+    border: 2px solid #4b5563 !important; /* border-gray-600 */
+    background: #1f2937 !important; /* bg-gray-900 */
+    padding: 1rem !important; /* p-4 */
+    border-radius: 0.5rem !important; /* rounded-lg */
+}
+
+/* Instruction step number */
+.instruction-step {
+    color: #fbbf24 !important; /* text-yellow-500 (mustard) */
+    font-weight: bold !important;
+}
+
+/* Instruction text */
+.instruction-text {
+    color: #ffffff !important; /* text-white */
 }
