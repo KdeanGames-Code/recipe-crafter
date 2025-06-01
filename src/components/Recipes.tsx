@@ -797,7 +797,7 @@ const Recipes = () => {
                                     <h3 className="recipe-section-header">
                                         Allergens
                                     </h3>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2 allergen-tags">
                                         {(recipeTags[selectedRecipe.id] || [])
                                             .filter(
                                                 (tag) =>
@@ -817,7 +817,7 @@ const Recipes = () => {
                                     <h3 className="recipe-section-header">
                                         Dietary Tags
                                     </h3>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2 dietary-tags">
                                         {(recipeTags[selectedRecipe.id] || [])
                                             .filter(
                                                 (tag) =>
@@ -997,8 +997,13 @@ const Recipes = () => {
                             </div>
                             <div className="flex space-x-2 mt-4">
                                 <Link to={`/recipes/edit/${selectedRecipe.id}`}>
-                                    <button className="py-2 px-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-400 transition-colors duration-300">
+                                    <button className="edit-recipe-btn">
                                         Edit Recipe
+                                    </button>
+                                </Link>
+                                <Link to="/chef-master">
+                                    <button className="master-chef-btn">
+                                        Master Chef
                                     </button>
                                 </Link>
                                 <button

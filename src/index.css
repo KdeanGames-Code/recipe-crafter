@@ -59,7 +59,8 @@ i.favorite-icon.favorited {
     color: #ef4444 !important; /* text-red-500 */
 }
 
-button.chef-master-btn {
+button.chef-master-btn,
+button.master-chef-btn {
     color: #60a5fa !important; /* text-blue-400 */
     background: linear-gradient(
         to bottom,
@@ -78,14 +79,16 @@ button.chef-master-btn {
     transition: all 0.2s ease !important;
 }
 
-button.chef-master-btn:hover {
+button.chef-master-btn:hover,
+button.master-chef-btn:hover {
     color: #93c5fd !important; /* hover:text-blue-300 */
     transform: translateY(-1px) !important; /* Slight lift on hover */
     box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
         -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
 }
 
-button.chef-master-btn:active {
+button.chef-master-btn:active,
+button.master-chef-btn:active {
     transform: translateY(1px) !important; /* Pressed effect */
     box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
 }
@@ -239,8 +242,6 @@ span.badge.bg-red-500 {
     overflow-y: auto !important; /* Ensure vertical scrolling */
 }
 
-/* Removed the mustard bottom border by removing the ::after pseudo-element */
-
 /* Recipe title container */
 .recipe-title-container {
     background: #111827 !important; /* bg-gray-950, darker than bg-gray-900 */
@@ -266,8 +267,6 @@ span.badge.bg-red-500 {
 .recipe-section-header {
     font-size: 1.25rem !important; /* text-xl */
     color: #fbbf24 !important; /* text-yellow-500 */
-    border-bottom: 2px solid #111827 !important; /* Darker than bg-gray-900 (#1F2937) */
-    box-shadow: 1px 1px 2px #1f2937, -1px -1px 2px #0d1216 !important; /* 3D effect with lighter and darker shades */
     padding-bottom: 0.25rem !important;
     margin-bottom: 1rem !important;
 }
@@ -289,4 +288,23 @@ span.badge.bg-red-500 {
 /* Instruction text */
 .instruction-text {
     color: #ffffff !important; /* text-white */
+}
+
+/* Add padding to allergen and dietary tag containers */
+.allergen-tags,
+.dietary-tags {
+    margin-top: 0.5rem !important; /* Add space between title and badges */
+}
+
+/* Edit Recipe button styling */
+button.edit-recipe-btn {
+    background-color: #b91c1c !important; /* bg-red-700 */
+    color: #ffffff !important; /* text-white */
+    padding: 0.5rem 1rem !important; /* py-2 px-4 */
+    border-radius: 0.5rem !important; /* rounded-lg */
+    transition: background-color 0.3s ease !important;
+}
+
+button.edit-recipe-btn:hover {
+    background-color: #dc2626 !important; /* bg-red-600 */
 }
