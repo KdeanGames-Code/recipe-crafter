@@ -282,13 +282,20 @@ const Recipes = () => {
                 if (response.data.length === 0) {
                     setErrorMessage("No recipes found in the database.");
                 }
-                // Mock ingredients and instructions for now
                 const recipesWithIngredients = response.data.map(
                     (recipe: Recipe) => ({
                         ...recipe,
                         ingredients: ["mock_ingredient_1", "mock_ingredient_2"],
                         instructions:
-                            "Mock instructions: Step 1. Prepare ingredients. Step 2. Cook and serve.",
+                            "Mock instructions: Step 1. Prepare ingredients. Step 2. Cook and serve.\n" +
+                            "Step 3. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n" +
+                            "Step 4. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n" +
+                            "Step 5. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n" +
+                            "Step 6. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n" +
+                            "Step 7. Repeat steps 1-6 as needed to ensure content overflows for testing the scrollbar.\n" +
+                            "Step 8. Additional step to make the content longer.\n" +
+                            "Step 9. Another step to ensure overflow.\n" +
+                            "Step 10. Final step for good measure.",
                     })
                 );
                 setRecipes(recipesWithIngredients);
@@ -744,19 +751,21 @@ const Recipes = () => {
             {/* Recipe Popup Modal */}
             {selectedRecipe && (
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-                    <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto relative">
+                    <div className="recipe-popup p-6 max-w-2xl w-full max-h-[80vh] custom-scrollbar relative">
                         <button
                             onClick={() => setSelectedRecipe(null)}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-300"
                         >
                             <i className="fas fa-times text-xl"></i>
                         </button>
-                        <h2 className="text-2xl font-bold text-yellow-500 mb-4">
+                        <h2 className="recipe-title text-yellow-500 mb-6">
+                            <i className="fas fa-utensils text-yellow-500"></i>
                             {selectedRecipe.title}
+                            <i className="fas fa-utensils text-yellow-500"></i>
                         </h2>
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Description
                                 </h3>
                                 <p className="text-gray-400">
@@ -765,7 +774,7 @@ const Recipes = () => {
                                 </p>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Cuisine
                                 </h3>
                                 <p className="text-gray-400">
@@ -773,7 +782,7 @@ const Recipes = () => {
                                 </p>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Dish Type
                                 </h3>
                                 <p className="text-gray-400">
@@ -781,7 +790,7 @@ const Recipes = () => {
                                 </p>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Allergens
                                 </h3>
                                 <div className="flex space-x-2">
@@ -800,7 +809,7 @@ const Recipes = () => {
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Dietary Tags
                                 </h3>
                                 <div className="flex space-x-2">
@@ -819,7 +828,7 @@ const Recipes = () => {
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Ingredients
                                 </h3>
                                 <ul className="list-disc list-inside text-gray-400">
@@ -831,7 +840,7 @@ const Recipes = () => {
                                 </ul>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Instructions
                                 </h3>
                                 <p className="text-gray-400 whitespace-pre-line">
@@ -840,7 +849,7 @@ const Recipes = () => {
                                 </p>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-white">
+                                <h3 className="recipe-section-header">
                                     Nutrition Facts (Per Serving)
                                 </h3>
                                 <div className="border-2 border-gray-600 rounded-lg p-4 bg-gray-900 text-white">

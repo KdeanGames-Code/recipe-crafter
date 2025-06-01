@@ -198,3 +198,69 @@ span.badge.bg-red-500 {
         #dc2626
     ) !important; /* Gradient for red (Allergen) */
 }
+
+/* Custom scrollbar styling for the app */
+.custom-scrollbar {
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #fbbf24 #2d3748; /* For Firefox */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #2d3748; /* bg-gray-800 */
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #fbbf24; /* bg-yellow-500 */
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #d97706; /* bg-yellow-600 */
+}
+
+/* Recipe popup styling */
+.recipe-popup {
+    background: #1f2937 !important; /* bg-gray-900 */
+    border-radius: 12px !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5) !important;
+    position: relative;
+    overflow-y: auto !important; /* Ensure vertical scrolling */
+}
+
+.recipe-popup::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(
+        to top,
+        #fbbf24,
+        #d97706
+    ); /* 3D bottom border with yellow gradient */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Recipe title styling */
+.recipe-title {
+    font-size: 2.25rem !important; /* text-4xl */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Section headers in the popup */
+.recipe-section-header {
+    font-size: 1.25rem !important; /* text-xl */
+    color: #fbbf24 !important; /* text-yellow-500 */
+    border-bottom: 2px solid #fbbf24;
+    padding-bottom: 0.25rem;
+    margin-bottom: 1rem;
+}
