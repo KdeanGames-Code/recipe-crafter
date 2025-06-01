@@ -20,7 +20,7 @@ interface Recipe {
     ingredients?: string[];
     instructions?: string;
     image_url?: string;
-    image_url_popup?: string; // Added for popup image
+    image_url_popup?: string;
 }
 
 interface Tag {
@@ -653,6 +653,17 @@ const Recipes = () => {
                         </p>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Add/Import Recipe Card as the First Card */}
+                            <Link to="/recipes/add">
+                                <div className="recipe-card p-4 rounded shadow bg-gray-700 transform transition-transform duration-200 hover:scale-105 cursor-pointer flex items-center justify-center">
+                                    <div className="text-center">
+                                        <i className="fas fa-plus-circle text-yellow-500 text-3xl mb-2"></i>
+                                        <h2 className="text-lg font-semibold text-yellow-500">
+                                            Add/Import Recipe
+                                        </h2>
+                                    </div>
+                                </div>
+                            </Link>
                             {filteredRecipes.map((recipe) => {
                                 const recipeAllergens = (
                                     recipeTags[recipe.id] || []

@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import NavBar from "./components/NavBar";
-import Dashboard from "./components/Dashboard";
 import Recipes from "./components/Recipes";
+import AddRecipe from "./components/AddRecipe";
+import Dashboard from "./components/Dashboard";
 import Calendar from "./components/Calendar";
 import ShoppingList from "./components/ShoppingList";
 import ChefMaster from "./components/ChefMaster";
@@ -13,11 +14,15 @@ function App() {
                 <NavBar />
                 <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/recipes" element={<Recipes />} />
+                    <Route path="/recipes">
+                        <Route index element={<Recipes />} />
+                        <Route path="add" element={<AddRecipe />} />
+                        <Route path="edit/:id" element={<AddRecipe />} />
+                    </Route>
                     <Route path="/calendar" element={<Calendar />} />
                     <Route path="/shopping-list" element={<ShoppingList />} />
                     <Route path="/chef-master" element={<ChefMaster />} />
-                    <Route path="/" element={<Recipes />} />
+                    <Route path="*" element={<Recipes />} />
                 </Routes>
             </div>
         </Router>

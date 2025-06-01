@@ -14,6 +14,8 @@ const NavBar = () => {
                 return "Dashboard";
             case "recipes":
                 return "Recipes";
+            case "recipes/add":
+                return "Add/Import Recipe";
             case "calendar":
                 return "Calendar";
             case "shopping-list":
@@ -21,7 +23,7 @@ const NavBar = () => {
             case "chef-master":
                 return "Chef Master";
             default:
-                return "Recipes"; // Default to Recipes
+                return "Recipes";
         }
     };
 
@@ -41,33 +43,41 @@ const NavBar = () => {
                     <i className="fas fa-sign-out-alt text-gray-400 text-xl"></i>
                 </div>
             </header>
-            <nav className="bg-gray-800 p-2 flex justify-around flex-wrap shadow-lg">
+            <nav className="navbar">
                 <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
-                        isActive
-                            ? "text-green-500 font-semibold px-2 py-1"
-                            : "text-gray-400 font-semibold px-2 py-1"
+                        isActive ? "nav-item active" : "nav-item"
                     }
                 >
                     Dashboard
                 </NavLink>
-                <NavLink
-                    to="/recipes"
-                    className={({ isActive }) =>
-                        isActive
-                            ? "text-green-500 font-semibold px-2 py-1"
-                            : "text-gray-400 font-semibold px-2 py-1"
-                    }
-                >
-                    Recipes
-                </NavLink>
+                <div className="nav-submenu-container">
+                    <NavLink
+                        to="/recipes"
+                        className={({ isActive }) =>
+                            isActive ? "nav-item active" : "nav-item"
+                        }
+                    >
+                        Recipes
+                    </NavLink>
+                    <div className="nav-submenu">
+                        <NavLink
+                            to="/recipes/add"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "nav-submenu-item active"
+                                    : "nav-submenu-item"
+                            }
+                        >
+                            Add/Import Recipe
+                        </NavLink>
+                    </div>
+                </div>
                 <NavLink
                     to="/calendar"
                     className={({ isActive }) =>
-                        isActive
-                            ? "text-green-500 font-semibold px-2 py-1"
-                            : "text-gray-400 font-semibold px-2 py-1"
+                        isActive ? "nav-item active" : "nav-item"
                     }
                 >
                     Calendar
@@ -75,9 +85,7 @@ const NavBar = () => {
                 <NavLink
                     to="/shopping-list"
                     className={({ isActive }) =>
-                        isActive
-                            ? "text-green-500 font-semibold px-2 py-1"
-                            : "text-gray-400 font-semibold px-2 py-1"
+                        isActive ? "nav-item active" : "nav-item"
                     }
                 >
                     Shopping List
