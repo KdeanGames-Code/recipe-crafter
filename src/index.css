@@ -25,72 +25,86 @@ body {
     padding: 0 !important;
 }
 
-/* Shared styles with 3D effects */
-button.favorite-btn {
-    padding: 0.5rem !important; /* p-2 */
+/* Shared styles with 3D effects for all buttons */
+button.favorite-btn,
+button.chef-master-btn,
+button.edit-recipe-btn,
+button.close-btn {
     background: linear-gradient(
         to bottom,
         #4b5563,
         #374151
     ) !important; /* Gradient: bg-gray-600 to bg-gray-700 */
-    border-radius: 9999px !important; /* rounded-full */
     border: 1px solid #2d3748 !important; /* border-gray-800 for depth */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
         -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
     transition: all 0.2s ease !important;
 }
 
-button.favorite-btn:hover {
-    transform: translateY(-1px) !important; /* Slight lift on hover */
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
-        -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
-}
-
-button.favorite-btn:active {
-    transform: translateY(1px) !important; /* Pressed effect */
-    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
-}
-
-i.favorite-icon {
-    color: #9ca3af !important; /* text-gray-400 */
-}
-
-i.favorite-icon.favorited {
-    color: #ef4444 !important; /* text-red-500 */
+button.favorite-btn {
+    padding: 0.5rem !important; /* p-2 */
+    border-radius: 9999px !important; /* rounded-full */
+    color: #60a5fa !important; /* text-blue-400 */
 }
 
 button.chef-master-btn,
-button.master-chef-btn {
-    color: #60a5fa !important; /* text-blue-400 */
-    background: linear-gradient(
-        to bottom,
-        #4b5563,
-        #374151
-    ) !important; /* Gradient: bg-gray-600 to bg-gray-700 */
+button.edit-recipe-btn,
+button.close-btn {
     padding-left: 0.75rem !important; /* px-3 */
     padding-right: 0.75rem !important;
     padding-top: 0.25rem !important; /* py-1 */
     padding-bottom: 0.25rem !important;
     border-radius: 0.5rem !important; /* rounded-lg */
     font-size: 0.875rem !important; /* text-sm */
-    border: 1px solid #2d3748 !important; /* border-gray-800 for depth */
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
-    transition: all 0.2s ease !important;
 }
 
+button.chef-master-btn {
+    color: #60a5fa !important; /* text-blue-400 */
+}
+
+button.edit-recipe-btn {
+    color: #b91c1c !important; /* bg-red-700 equivalent for text */
+}
+
+button.close-btn {
+    color: #9ca3af !important; /* bg-gray-500 equivalent for text */
+}
+
+button.favorite-btn:hover,
 button.chef-master-btn:hover,
-button.master-chef-btn:hover {
-    color: #93c5fd !important; /* hover:text-blue-300 */
+button.edit-recipe-btn:hover,
+button.close-btn:hover {
     transform: translateY(-1px) !important; /* Slight lift on hover */
     box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4),
         -3px -3px 6px rgba(255, 255, 255, 0.1) !important;
 }
 
+button.chef-master-btn:hover {
+    color: #93c5fd !important; /* hover:text-blue-300 */
+}
+
+button.edit-recipe-btn:hover {
+    color: #dc2626 !important; /* hover:bg-red-600 equivalent for text */
+}
+
+button.close-btn:hover {
+    color: #d1d5db !important; /* hover:bg-gray-400 equivalent for text */
+}
+
+button.favorite-btn:active,
 button.chef-master-btn:active,
-button.master-chef-btn:active {
+button.edit-recipe-btn:active,
+button.close-btn:active {
     transform: translateY(1px) !important; /* Pressed effect */
     box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+i.favorite-icon {
+    color: inherit !important; /* Inherit from parent button */
+}
+
+i.favorite-icon.favorited {
+    color: #ef4444 !important; /* text-red-500 */
 }
 
 /* 3D effects for badges (allergen, dietary, filter options) */
@@ -294,17 +308,4 @@ span.badge.bg-red-500 {
 .allergen-tags,
 .dietary-tags {
     margin-top: 0.5rem !important; /* Add space between title and badges */
-}
-
-/* Edit Recipe button styling */
-button.edit-recipe-btn {
-    background-color: #b91c1c !important; /* bg-red-700 */
-    color: #ffffff !important; /* text-white */
-    padding: 0.5rem 1rem !important; /* py-2 px-4 */
-    border-radius: 0.5rem !important; /* rounded-lg */
-    transition: background-color 0.3s ease !important;
-}
-
-button.edit-recipe-btn:hover {
-    background-color: #dc2626 !important; /* bg-red-600 */
 }

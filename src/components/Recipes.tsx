@@ -1002,13 +1002,13 @@ const Recipes = () => {
                                     </button>
                                 </Link>
                                 <Link to="/chef-master">
-                                    <button className="master-chef-btn">
+                                    <button className="chef-master-btn">
                                         Master Chef
                                     </button>
                                 </Link>
                                 <button
                                     onClick={() => setSelectedRecipe(null)}
-                                    className="py-2 px-4 bg-gray-500 text-white rounded-lg hover:bg-gray-400 transition-colors duration-300"
+                                    className="close-btn"
                                 >
                                     Close
                                 </button>
