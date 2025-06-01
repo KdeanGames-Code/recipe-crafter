@@ -12,7 +12,8 @@ interface Recipe {
     average_rating: number;
     cuisine: string;
     dish_type: string;
-    ingredients?: string[]; // Mock field for ingredients
+    ingredients?: string[];
+    instructions?: string;
 }
 
 interface Tag {
@@ -100,7 +101,6 @@ const FilterBox = ({
                 )
             ) {
                 setAppliedFilters((prev) => [...prev, item]);
-                // Remove the item from filterOptions if it's not an ingredient
                 if (item.type !== "ingredient") {
                     setFilterOptions((prev) =>
                         prev.filter(
@@ -131,7 +131,6 @@ const FilterBox = ({
                     )
             )
         );
-        // Add the item back to filterOptions if it's not an ingredient
         if (badge.type !== "ingredient") {
             setFilterOptions((prev) =>
                 [...prev, badge].sort((a, b) => a.value.localeCompare(b.value))
@@ -186,7 +185,6 @@ const FilterOptions = ({
                         )
                 )
             );
-            // Add the item back to filterOptions if it's not an ingredient
             if (item.type !== "ingredient") {
                 setFilterOptions((prev) =>
                     [...prev, item].sort((a, b) =>
@@ -245,6 +243,7 @@ const Recipes = () => {
     const [isLoadingTags, setIsLoadingTags] = useState(true);
     const [isLoadingRecipes, setIsLoadingRecipes] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string>("");
+    const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
     const userId = 1;
 
     useEffect(() => {
@@ -283,11 +282,13 @@ const Recipes = () => {
                 if (response.data.length === 0) {
                     setErrorMessage("No recipes found in the database.");
                 }
-                // Mock ingredients for now since the API doesn't provide them
+                // Mock ingredients and instructions for now
                 const recipesWithIngredients = response.data.map(
                     (recipe: Recipe) => ({
                         ...recipe,
-                        ingredients: ["mock_ingredient_1", "mock_ingredient_2"], // Replace with real data when available
+                        ingredients: ["mock_ingredient_1", "mock_ingredient_2"],
+                        instructions:
+                            "Mock instructions: Step 1. Prepare ingredients. Step 2. Cook and serve.",
                     })
                 );
                 setRecipes(recipesWithIngredients);
@@ -491,7 +492,7 @@ const Recipes = () => {
                     dietaryTags.map((value) => ({ type: "dietary", value }))
                 );
             } else if (filterCategory === "ingredient") {
-                setFilterOptions([]); // Ingredients are added via input, not preloaded
+                setFilterOptions([]);
             }
         }
     }, [
@@ -505,7 +506,7 @@ const Recipes = () => {
 
     const handleCategoryChange = (category: string) => {
         setFilterCategory(category);
-        setIngredientInput(""); // Clear ingredient input when changing categories
+        setIngredientInput("");
     };
 
     const handleIngredientInput = (
@@ -517,7 +518,7 @@ const Recipes = () => {
                 value: ingredientInput.trim(),
             };
             setAppliedFilters((prev) => [...prev, newBadge]);
-            setIngredientInput(""); // Clear the input after adding
+            setIngredientInput("");
         }
     };
 
@@ -657,7 +658,10 @@ const Recipes = () => {
                                 return (
                                     <div
                                         key={recipe.id}
-                                        className="recipe-card p-4 rounded shadow bg-gray-700 transform transition-transform duration-200 hover:scale-105"
+                                        className="recipe-card p-4 rounded shadow bg-gray-700 transform transition-transform duration-200 hover:scale-105 cursor-pointer"
+                                        onClick={() =>
+                                            setSelectedRecipe(recipe)
+                                        }
                                     >
                                         <h2 className="text-lg font-semibold text-yellow-500">
                                             {recipe.title}
@@ -702,9 +706,10 @@ const Recipes = () => {
                                         </div>
                                         <div className="flex space-x-2 mt-2">
                                             <button
-                                                onClick={() =>
-                                                    toggleFavorite(recipe.id)
-                                                }
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleFavorite(recipe.id);
+                                                }}
                                                 className="favorite-btn"
                                             >
                                                 <i
@@ -717,7 +722,12 @@ const Recipes = () => {
                                                     } text-sm`}
                                                 ></i>
                                             </button>
-                                            <Link to="/chef-master">
+                                            <Link
+                                                to="/chef-master"
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            >
                                                 <button className="chef-master-btn">
                                                     Start Chef Master
                                                 </button>
@@ -730,6 +740,232 @@ const Recipes = () => {
                     )}
                 </div>
             </div>
+
+            {/* Recipe Popup Modal */}
+            {selectedRecipe && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto relative">
+                        <button
+                            onClick={() => setSelectedRecipe(null)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-300"
+                        >
+                            <i className="fas fa-times text-xl"></i>
+                        </button>
+                        <h2 className="text-2xl font-bold text-yellow-500 mb-4">
+                            {selectedRecipe.title}
+                        </h2>
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Description
+                                </h3>
+                                <p className="text-gray-400">
+                                    {selectedRecipe.description ||
+                                        "No description"}
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Cuisine
+                                </h3>
+                                <p className="text-gray-400">
+                                    {selectedRecipe.cuisine || "N/A"}
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Dish Type
+                                </h3>
+                                <p className="text-gray-400">
+                                    {selectedRecipe.dish_type || "N/A"}
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Allergens
+                                </h3>
+                                <div className="flex space-x-2">
+                                    {(recipeTags[selectedRecipe.id] || [])
+                                        .filter(
+                                            (tag) => tag.tag_type === "allergen"
+                                        )
+                                        .map((tag) => (
+                                            <span
+                                                key={tag.tag_name}
+                                                className="badge bg-red-500"
+                                            >
+                                                {tag.tag_name}
+                                            </span>
+                                        ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Dietary Tags
+                                </h3>
+                                <div className="flex space-x-2">
+                                    {(recipeTags[selectedRecipe.id] || [])
+                                        .filter(
+                                            (tag) => tag.tag_type === "dietary"
+                                        )
+                                        .map((tag) => (
+                                            <span
+                                                key={tag.tag_name}
+                                                className="badge bg-blue-500"
+                                            >
+                                                {tag.tag_name}
+                                            </span>
+                                        ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Ingredients
+                                </h3>
+                                <ul className="list-disc list-inside text-gray-400">
+                                    {(selectedRecipe.ingredients || []).map(
+                                        (ingredient, index) => (
+                                            <li key={index}>{ingredient}</li>
+                                        )
+                                    )}
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Instructions
+                                </h3>
+                                <p className="text-gray-400 whitespace-pre-line">
+                                    {selectedRecipe.instructions ||
+                                        "No instructions"}
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white">
+                                    Nutrition Facts (Per Serving)
+                                </h3>
+                                <div className="border-2 border-gray-600 rounded-lg p-4 bg-gray-900 text-white">
+                                    <div className="border-b-4 border-white mb-2">
+                                        <p className="text-xl font-bold">
+                                            Nutrition Facts
+                                        </p>
+                                        <p className="text-sm">
+                                            Serving Size: 1 serving
+                                        </p>
+                                    </div>
+                                    <div className="border-b-2 border-gray-600 mb-2">
+                                        <p className="text-lg font-semibold">
+                                            Calories{" "}
+                                            <span className="float-right">
+                                                200
+                                            </span>
+                                        </p>
+                                        <p className="text-sm text-gray-400">
+                                            Calories from Fat 90
+                                        </p>
+                                    </div>
+                                    <div className="text-sm border-b border-gray-600 py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Total Fat
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                10g (13% DV)
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm border-b border-gray-600 py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Saturated Fat
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                2g (10% DV)
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm border-b border-gray-600 py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Cholesterol
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                30mg (10% DV)
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm border-b border-gray-600 py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Sodium
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                300mg (13% DV)
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm border-b border-gray-600 py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Total Carbohydrate
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                25g (9% DV)
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm border-b border-gray-600 py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Dietary Fiber
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                3g (11% DV)
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm border-b border-gray-600 py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Sugars
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                5g
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="text-sm py-1">
+                                        <p>
+                                            <span className="font-semibold">
+                                                Protein
+                                            </span>{" "}
+                                            <span className="float-right">
+                                                15g
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-2">
+                                        *Percent Daily Values (DV) are based on
+                                        a 2,000 calorie diet.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex space-x-2 mt-4">
+                                <Link to={`/recipes/edit/${selectedRecipe.id}`}>
+                                    <button className="py-2 px-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-400 transition-colors duration-300">
+                                        Edit Recipe
+                                    </button>
+                                </Link>
+                                <button
+                                    onClick={() => setSelectedRecipe(null)}
+                                    className="py-2 px-4 bg-gray-500 text-white rounded-lg hover:bg-gray-400 transition-colors duration-300"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DndProvider>
     );
 };
