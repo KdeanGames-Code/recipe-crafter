@@ -231,7 +231,7 @@ const Recipes = () => {
     const [favorites, setFavorites] = useState<number[]>([]);
     const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
     const [cuisines, setCuisines] = useState<string[]>([]);
-    const [dishTypes, setDishTypes] = useState<string[]>([]);
+    const [dishTypes, setDishTypes] = useState<string[]>([]); // Fixed: Renamed setCuisines to setDishTypes
     const [allergens, setAllergens] = useState<string[]>([]);
     const [dietaryTags, setDietaryTags] = useState<string[]>([]);
     const [filterCategory, setFilterCategory] = useState<string>("cuisine");
@@ -316,7 +316,7 @@ const Recipes = () => {
                     ),
                 ] as string[];
                 setCuisines(uniqueCuisines);
-                setDishTypes(uniqueDishTypes);
+                setDishTypes(uniqueDishTypes); // Fixed: Use setDishTypes
 
                 setFilterOptions(
                     uniqueCuisines.map((cuisine) => ({
@@ -367,7 +367,7 @@ const Recipes = () => {
                 setRecipes([]);
                 setFilteredRecipes([]);
                 setCuisines([]);
-                setDishTypes([]);
+                setDishTypes([]); // Fixed: Use setDishTypes
                 setFilterOptions([]);
                 setIsLoadingRecipes(false);
             });
@@ -751,10 +751,10 @@ const Recipes = () => {
             {/* Recipe Popup Modal */}
             {selectedRecipe && (
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-                    <div className="recipe-popup p-6 max-w-2xl w-full max-h-[80vh] custom-scrollbar relative">
+                    <div className="recipe-popup pt-0 px-6 pb-6 max-w-2xl w-full max-h-[80vh] custom-scrollbar relative">
                         <button
                             onClick={() => setSelectedRecipe(null)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-300"
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-300 z-20"
                         >
                             <i className="fas fa-times text-xl"></i>
                         </button>

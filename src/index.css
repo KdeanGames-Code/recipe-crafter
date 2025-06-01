@@ -18,6 +18,13 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Reset styles for h3 elements within the popup to avoid conflicts */
+.recipe-popup h3 {
+    text-decoration: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 /* Shared styles with 3D effects */
 button.favorite-btn {
     padding: 0.5rem !important; /* p-2 */
@@ -250,9 +257,13 @@ span.badge.bg-red-500 {
 /* Recipe title container */
 .recipe-title-container {
     background: #111827 !important; /* bg-gray-950, darker than bg-gray-900 */
-    padding: 1rem !important;
-    border-radius: 8px !important;
-    margin-bottom: 1.5rem !important;
+    padding: 0.5rem 1rem !important;
+    margin: 0 -1.5rem 1.5rem -1.5rem !important; /* Counteract popup padding to align with edges */
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 /* Recipe title styling */
@@ -268,7 +279,7 @@ span.badge.bg-red-500 {
 .recipe-section-header {
     font-size: 1.25rem !important; /* text-xl */
     color: #fbbf24 !important; /* text-yellow-500 */
-    border-bottom: 2px solid #fbbf24;
-    padding-bottom: 0.25rem;
-    margin-bottom: 1rem;
+    border-bottom: 2px solid #111827 !important; /* Darker than bg-gray-900 (#1F2937) */
+    padding-bottom: 0.25rem !important;
+    margin-bottom: 1rem !important;
 }
