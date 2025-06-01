@@ -4,7 +4,11 @@ import axios from "axios";
 import { Resizable } from "react-resizable";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import API_BASE_URL from "../config/apiConfig"; // Import the centralized API base URL
+import API_BASE_URL from "../config/apiConfig";
+
+// Import placeholder images
+import placeholderThumbnail from "../assets/images/placeholder-kitchen-100x100.png";
+import placeholderPopup from "../assets/images/placeholder-kitchen-672x448.png";
 
 interface Recipe {
     id: number;
@@ -16,6 +20,7 @@ interface Recipe {
     ingredients?: string[];
     instructions?: string;
     image_url?: string;
+    image_url_popup?: string; // Added for popup image
 }
 
 interface Tag {
@@ -298,8 +303,8 @@ const Recipes = () => {
                             "Step 8. Additional step to make the content longer.\n" +
                             "Step 9. Another step to ensure overflow.\n" +
                             "Step 10. Final step for good measure.",
-                        image_url:
-                            "https://images.unsplash.com/photo-1556910103-1c02745aae4f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200&q=80", // Updated placeholder image
+                        image_url: placeholderThumbnail, // Use thumbnail for recipe cards
+                        image_url_popup: placeholderPopup, // Use larger image for popup
                     })
                 );
                 setRecipes(recipesWithIngredients);
@@ -784,7 +789,7 @@ const Recipes = () => {
                             {/* Photo Above Description */}
                             <div className="recipe-photo">
                                 <img
-                                    src={selectedRecipe.image_url}
+                                    src={selectedRecipe.image_url_popup}
                                     alt={selectedRecipe.title}
                                 />
                             </div>
