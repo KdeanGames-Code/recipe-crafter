@@ -462,7 +462,29 @@ const AddRecipe = () => {
                     ? "Upload an image of your recipe. A preview will appear once selected."
                     : "Enter a URL for the recipe image. A preview will appear if the URL is valid.";
             default:
-                return "Fill in the form to add or edit your recipe. Required fields are marked with an asterisk (*).";
+                return (
+                    <div>
+                        <p className="mb-2">
+                            Welcome to the Recipe Crafter! Use this form to add
+                            or edit a recipe.
+                        </p>
+                        <p className="mb-2">
+                            The <strong>Recipe Options</strong> pane on the left
+                            provides tools and options to assist with filling
+                            out the form, such as importing a recipe or
+                            selecting tags.
+                        </p>
+                        <p className="mb-2">
+                            This instruction area will provide guidance on each
+                            task as you progress through the form.
+                        </p>
+                        <p className="mb-2">
+                            Start by entering a title for your recipe in the
+                            form on the right.
+                        </p>
+                        <p>Required fields are marked with an asterisk (*).</p>
+                    </div>
+                );
         }
     };
 
@@ -473,8 +495,7 @@ const AddRecipe = () => {
                 <div
                     className="bg-gray-800 p-4 mr-4"
                     style={{
-                        minWidth: "200px",
-                        maxWidth: "500px",
+                        width: "450px",
                         position: "sticky",
                         top: "112px",
                         height: "calc(100vh - 112px)",
@@ -483,6 +504,18 @@ const AddRecipe = () => {
                     <h2 className="text-2xl font-bold text-yellow-500 mb-4">
                         Recipe Options
                     </h2>
+                    <div className="toolbar">
+                        <button
+                            type="button"
+                            className="import-btn"
+                            title="Import a recipe"
+                            onClick={() =>
+                                alert("Import functionality coming soon!")
+                            }
+                        >
+                            <i className="fas fa-file-import"></i>
+                        </button>
+                    </div>
                     {errorMessage && (
                         <p className="text-red-500 mb-4">{errorMessage}</p>
                     )}
@@ -491,14 +524,14 @@ const AddRecipe = () => {
                             <p className="text-gray-400">Loading options...</p>
                         ) : (
                             <>
-                                {/* Info Box */}
+                                {/* Instructions */}
                                 <div className="bg-gray-700 p-4 rounded-lg">
                                     <h3 className="text-lg font-semibold text-yellow-500 mb-2">
                                         Instructions
                                     </h3>
-                                    <p className="text-gray-400">
+                                    <div className="text-gray-400">
                                         {getInfoBoxContent()}
-                                    </p>
+                                    </div>
                                 </div>
                                 {/* Add Cuisine */}
                                 {showAddCuisine && (
@@ -563,47 +596,51 @@ const AddRecipe = () => {
                                     </div>
                                 )}
                                 {/* Allergen Tags */}
-                                <div>
-                                    <h3 className="text-lg font-semibold text-yellow-500 mb-2">
-                                        Allergens
-                                    </h3>
-                                    <div className="form-section custom-scrollbar">
-                                        <div className="flex flex-wrap gap-2">
-                                            {allergens.map((allergen) => (
-                                                <TagBadge
-                                                    key={`allergen-${allergen}`}
-                                                    badge={{
-                                                        type: "allergen",
-                                                        value: allergen,
-                                                    }}
-                                                    onRemove={() => {}}
-                                                    showRemove={false}
-                                                />
-                                            ))}
+                                {focusedField === "allergens" && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                            Allergens
+                                        </h3>
+                                        <div className="form-section custom-scrollbar">
+                                            <div className="flex flex-wrap gap-2">
+                                                {allergens.map((allergen) => (
+                                                    <TagBadge
+                                                        key={`allergen-${allergen}`}
+                                                        badge={{
+                                                            type: "allergen",
+                                                            value: allergen,
+                                                        }}
+                                                        onRemove={() => {}}
+                                                        showRemove={false}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
                                 {/* Dietary Tags */}
-                                <div>
-                                    <h3 className="text-lg font-semibold text-yellow-500 mb-2">
-                                        Dietary Tags
-                                    </h3>
-                                    <div className="form-section custom-scrollbar">
-                                        <div className="flex flex-wrap gap-2">
-                                            {dietaryTags.map((dietary) => (
-                                                <TagBadge
-                                                    key={`dietary-${dietary}`}
-                                                    badge={{
-                                                        type: "dietary",
-                                                        value: dietary,
-                                                    }}
-                                                    onRemove={() => {}}
-                                                    showRemove={false}
-                                                />
-                                            ))}
+                                {focusedField === "dietary" && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                            Dietary Tags
+                                        </h3>
+                                        <div className="form-section custom-scrollbar">
+                                            <div className="flex flex-wrap gap-2">
+                                                {dietaryTags.map((dietary) => (
+                                                    <TagBadge
+                                                        key={`dietary-${dietary}`}
+                                                        badge={{
+                                                            type: "dietary",
+                                                            value: dietary,
+                                                        }}
+                                                        onRemove={() => {}}
+                                                        showRemove={false}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
                             </>
                         )}
                     </div>

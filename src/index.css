@@ -572,3 +572,36 @@ html::-webkit-scrollbar-thumb:hover {
     display: flex !important;
     gap: 0.5rem !important; /* space-x-2 */
 }
+
+/* Import button styling */
+.import-btn {
+    background: #31578d !important; /* Custom blue color */
+    color: #ffffff !important; /* text-white */
+    padding: 0.5rem !important; /* p-2 */
+    width: 2.5rem !important; /* w-10 */
+    height: 2.5rem !important; /* h-10 */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0.25rem !important; /* rounded */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: background 0.2s ease, box-shadow 0.2s ease !important; /* Smooth transition for background and shadow */
+}
+
+.import-btn:hover {
+    background: #466ca6 !important; /* Lighter shade of #31578d */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* No movement, same shadow */
+}
+
+.import-btn:active {
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important; /* Inset shadow for pressed look */
+}
+
+/* Toolbar styling */
+.toolbar {
+    display: flex !important;
+    gap: 0.5rem !important; /* space-x-2 */
+    margin-bottom: 1rem !important; /* mb-4 */
+}
