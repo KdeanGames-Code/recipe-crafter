@@ -112,8 +112,8 @@ const TagBox = ({
     return (
         <div
             ref={tagBoxRef}
-            className={`border-2 border-dashed rounded-lg p-4 min-h-[100px] ${
-                isOver ? "bg-gray-600" : "bg-gray-700"
+            className={`tag-box custom-scrollbar ${
+                isOver ? "tag-box-drag-over" : ""
             }`}
         >
             <div className="flex flex-wrap gap-2">
@@ -567,18 +567,20 @@ const AddRecipe = () => {
                                     <h3 className="text-lg font-semibold text-yellow-500 mb-2">
                                         Allergens
                                     </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {allergens.map((allergen) => (
-                                            <TagBadge
-                                                key={`allergen-${allergen}`}
-                                                badge={{
-                                                    type: "allergen",
-                                                    value: allergen,
-                                                }}
-                                                onRemove={() => {}}
-                                                showRemove={false}
-                                            />
-                                        ))}
+                                    <div className="form-section custom-scrollbar">
+                                        <div className="flex flex-wrap gap-2">
+                                            {allergens.map((allergen) => (
+                                                <TagBadge
+                                                    key={`allergen-${allergen}`}
+                                                    badge={{
+                                                        type: "allergen",
+                                                        value: allergen,
+                                                    }}
+                                                    onRemove={() => {}}
+                                                    showRemove={false}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                                 {/* Dietary Tags */}
@@ -586,18 +588,20 @@ const AddRecipe = () => {
                                     <h3 className="text-lg font-semibold text-yellow-500 mb-2">
                                         Dietary Tags
                                     </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {dietaryTags.map((dietary) => (
-                                            <TagBadge
-                                                key={`dietary-${dietary}`}
-                                                badge={{
-                                                    type: "dietary",
-                                                    value: dietary,
-                                                }}
-                                                onRemove={() => {}}
-                                                showRemove={false}
-                                            />
-                                        ))}
+                                    <div className="form-section custom-scrollbar">
+                                        <div className="flex flex-wrap gap-2">
+                                            {dietaryTags.map((dietary) => (
+                                                <TagBadge
+                                                    key={`dietary-${dietary}`}
+                                                    badge={{
+                                                        type: "dietary",
+                                                        value: dietary,
+                                                    }}
+                                                    onRemove={() => {}}
+                                                    showRemove={false}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </>
@@ -615,7 +619,7 @@ const AddRecipe = () => {
                             Edit Recipe: {recipe.title || "Loading..."}
                         </h2>
                     )}
-                    <div className="bg-gray-800 p-4 rounded-lg">
+                    <div className="form-container">
                         {validationErrors.form && (
                             <p className="text-red-500 mb-4">
                                 {validationErrors.form}
@@ -624,7 +628,7 @@ const AddRecipe = () => {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {/* Title */}
                             <div>
-                                <div className="flex items-center justify-between">
+                                <div className="label-group">
                                     <label className="block text-yellow-500 mb-1">
                                         Title *
                                     </label>
@@ -676,7 +680,7 @@ const AddRecipe = () => {
                             {/* Cuisine & Dish Type (Same Row) */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <div className="flex items-center justify-between">
+                                    <div className="label-group">
                                         <label className="block text-yellow-500 mb-1">
                                             Cuisine *
                                         </label>
@@ -716,7 +720,7 @@ const AddRecipe = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <div className="flex items-center justify-between">
+                                    <div className="label-group">
                                         <label className="block text-yellow-500 mb-1">
                                             Dish Type *
                                         </label>
@@ -758,7 +762,7 @@ const AddRecipe = () => {
                             </div>
                             {/* Ingredients */}
                             <div>
-                                <div className="flex items-center justify-between">
+                                <div className="label-group">
                                     <label className="block text-yellow-500 mb-1">
                                         Ingredients *
                                     </label>
@@ -771,7 +775,7 @@ const AddRecipe = () => {
                                 {recipe.ingredients.map((ingredient, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center mb-2"
+                                        className="ingredient-item"
                                     >
                                         <input
                                             type="text"
@@ -803,7 +807,7 @@ const AddRecipe = () => {
                                                 onClick={() =>
                                                     removeIngredient(index)
                                                 }
-                                                className="ml-2 text-red-500 hover:text-red-400"
+                                                className="remove-button"
                                             >
                                                 <i className="fas fa-trash"></i>
                                             </button>
@@ -813,7 +817,7 @@ const AddRecipe = () => {
                                 <button
                                     type="button"
                                     onClick={addIngredient}
-                                    className="text-yellow-500 hover:text-yellow-400 flex items-center"
+                                    className="action-button"
                                 >
                                     <i className="fas fa-plus-circle mr-1"></i>{" "}
                                     Add Ingredient
@@ -821,7 +825,7 @@ const AddRecipe = () => {
                             </div>
                             {/* Instructions */}
                             <div>
-                                <div className="flex items-center justify-between">
+                                <div className="label-group">
                                     <label className="block text-yellow-500 mb-1">
                                         Instructions *
                                     </label>
@@ -878,7 +882,7 @@ const AddRecipe = () => {
                                 <label className="block text-yellow-500 mb-1">
                                     Recipe Image
                                 </label>
-                                <div className="bg-gray-800 p-4 rounded-lg">
+                                <div className="form-container">
                                     {/* Tabs for Upload/URL */}
                                     <div className="flex border-b border-gray-600 mb-4">
                                         <button
@@ -1005,7 +1009,7 @@ const AddRecipe = () => {
                                                         image_url: "",
                                                     }));
                                                 }}
-                                                className="text-red-500 hover:text-red-400 mt-2 flex mx-auto"
+                                                className="remove-button-image"
                                             >
                                                 <i className="fas fa-trash mr-1"></i>{" "}
                                                 Remove Image
@@ -1015,7 +1019,7 @@ const AddRecipe = () => {
                                 </div>
                             </div>
                             {/* Submit Button */}
-                            <div className="flex space-x-2">
+                            <div className="button-group">
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}

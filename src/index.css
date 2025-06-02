@@ -487,3 +487,88 @@ html::-webkit-scrollbar-thumb:hover {
 .nav-submenu-item:hover {
     color: #fbbf24 !important; /* text-yellow-500 (mustard) */
 }
+
+/* Form container styling */
+.form-container {
+    background: #1f2937 !important; /* bg-gray-900 */
+    padding: 1rem !important; /* p-4 */
+    border-radius: 0.5rem !important; /* rounded-lg */
+}
+
+/* Form section styling (similar to FilterOptions) */
+.form-section {
+    background: #374151 !important; /* bg-gray-700 */
+    padding: 1rem !important; /* p-4 */
+    border-radius: 0.5rem !important; /* rounded-lg */
+    min-height: 150px !important; /* min-h-[150px] */
+    max-height: 200px !important; /* max-h-[200px] */
+    overflow-y: auto !important; /* overflow-y-auto */
+}
+
+/* Tag box styling (similar to FilterBox) */
+.tag-box {
+    border: 2px dashed #4b5563 !important; /* border-2 border-dashed border-gray-600 */
+    border-radius: 0.5rem !important; /* rounded-lg */
+    padding: 1rem !important; /* p-4 */
+    min-height: 100px !important; /* min-h-[100px] */
+    max-height: 200px !important; /* max-h-[200px] */
+    overflow-y: auto !important; /* overflow-y-auto */
+}
+
+/* Tag box on drag-over */
+.tag-box-drag-over {
+    background: #4b5563 !important; /* bg-gray-600 */
+}
+
+/* Label group (label and validation error) */
+.label-group {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+/* Ingredient item (input and remove button wrapper) */
+.ingredient-item {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 0.5rem !important; /* mb-2 */
+}
+
+/* Action button styling (e.g., Add Ingredient) */
+.action-button {
+    color: #fbbf24 !important; /* text-yellow-500 */
+    display: flex !important;
+    align-items: center !important;
+}
+
+.action-button:hover {
+    color: #d97706 !important; /* text-yellow-400 */
+}
+
+/* Remove button styling (e.g., Remove Ingredient, Remove Image) */
+.remove-button {
+    color: #ef4444 !important; /* text-red-500 */
+    margin-left: 0.5rem !important; /* ml-2 */
+}
+
+.remove-button:hover {
+    color: #f87171 !important; /* text-red-400 */
+}
+
+.remove-button-image {
+    color: #ef4444 !important; /* text-red-500 */
+    margin-top: 0.5rem !important; /* mt-2 */
+    display: flex !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.remove-button-image:hover {
+    color: #f87171 !important; /* text-red-400 */
+}
+
+/* Button group styling */
+.button-group {
+    display: flex !important;
+    gap: 0.5rem !important; /* space-x-2 */
+}
