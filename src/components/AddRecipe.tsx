@@ -595,11 +595,11 @@ const AddRecipe = () => {
 
                 {/* Right Column: Recipe Form */}
                 <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-white mb-4">
-                        {id
-                            ? `Edit Recipe: ${recipe.title || "Loading..."}`
-                            : "Add Recipe"}
-                    </h2>
+                    {id && (
+                        <h2 className="text-2xl font-bold text-white mb-4">
+                            Edit Recipe: {recipe.title || "Loading..."}
+                        </h2>
+                    )}
                     <div className="bg-gray-800 p-4 rounded-lg">
                         {validationErrors.form && (
                             <p className="text-red-500 mb-4">
@@ -679,6 +679,9 @@ const AddRecipe = () => {
                                                 : "border-gray-600"
                                         } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
                                     >
+                                        <option value="" disabled>
+                                            Select Cuisine
+                                        </option>
                                         <option value="add_cuisine">
                                             Add Cuisine
                                         </option>
@@ -717,6 +720,9 @@ const AddRecipe = () => {
                                                 : "border-gray-600"
                                         } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
                                     >
+                                        <option value="" disabled>
+                                            Select Dish Type
+                                        </option>
                                         <option value="add_dish_type">
                                             Add Dish Type
                                         </option>
