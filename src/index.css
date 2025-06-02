@@ -605,3 +605,32 @@ html::-webkit-scrollbar-thumb:hover {
     gap: 0.5rem !important; /* space-x-2 */
     margin-bottom: 1rem !important; /* mb-4 */
 }
+
+/* Form input styling (for text inputs, textareas, selects) */
+.form-input {
+    padding: 0.75rem !important; /* p-3 */
+    background: #2d3748 !important; /* bg-gray-800 */
+    color: #ffffff !important; /* text-white */
+    border-radius: 0.5rem !important; /* rounded-lg */
+    width: 100% !important; /* w-full */
+    border: 1px solid #4b5563 !important; /* border-gray-600 */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+        -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
+    transition: background 0.2s ease, box-shadow 0.2s ease,
+        border-color 0.2s ease !important;
+}
+
+.form-input:focus {
+    outline: none !important;
+    border-color: transparent !important;
+    ring: 2px !important; /* focus:ring-2 */
+    ring-color: #fbbf24 !important; /* focus:ring-yellow-500 */
+    background: #374151 !important; /* focus:bg-gray-700 */
+}
+
+/* Character count styling */
+.character-count {
+    color: #9ca3af !important; /* text-gray-400 */
+    font-size: 0.875rem !important; /* text-sm */
+    margin-top: 0.25rem !important; /* mt-1 */
+}

@@ -171,6 +171,10 @@ const AddRecipe = () => {
     const [showAddDishType, setShowAddDishType] = useState(false);
     const [newDishType, setNewDishType] = useState("");
 
+    // Character limits
+    const TITLE_MAX_LENGTH = 100;
+    const DESCRIPTION_MAX_LENGTH = 500;
+
     // Load tags and recipe data
     useEffect(() => {
         axios
@@ -280,6 +284,12 @@ const AddRecipe = () => {
         >
     ) => {
         const { name, value } = e.target;
+        if (name === "title" && value.length > TITLE_MAX_LENGTH) {
+            return; // Prevent typing beyond the character limit
+        }
+        if (name === "description" && value.length > DESCRIPTION_MAX_LENGTH) {
+            return; // Prevent typing beyond the character limit
+        }
         setRecipe((prev) => ({ ...prev, [name]: value }));
         setValidationErrors((prev) => ({ ...prev, [name]: "" }));
 
@@ -442,9 +452,44 @@ const AddRecipe = () => {
     const getInfoBoxContent = () => {
         switch (focusedField) {
             case "title":
-                return 'Enter a descriptive title for your recipe (e.g., "Spicy Chicken Tacos").';
+                return (
+                    <div>
+                        <p className="mb-2">
+                            Enter a descriptive title for your recipe (e.g.,
+                            "Spicy Chicken Tacos").
+                        </p>
+                        <p className="mb-2">
+                            Need inspiration? Try these creative names:
+                        </p>
+                        <ul className="list-disc list-inside">
+                            <li>Grandma's Secret Lasagna</li>
+                            <li>Spicy Midnight Tacos</li>
+                            <li>Sunset Citrus Salad</li>
+                        </ul>
+                    </div>
+                );
             case "description":
-                return "Provide a brief description of your recipe, including any special notes or serving suggestions.";
+                return (
+                    <div>
+                        <p className="mb-2">
+                            Provide a brief description of your recipe,
+                            including any special notes or serving suggestions.
+                        </p>
+                        <p className="mb-2">
+                            Here are some examples to inspire you:
+                        </p>
+                        <ul className="list-disc list-inside">
+                            <li>
+                                A creamy pasta dish perfect for cozy nights,
+                                best served with garlic bread.
+                            </li>
+                            <li>
+                                This tangy salad brings summer vibes, great for
+                                picnics or BBQs!
+                            </li>
+                        </ul>
+                    </div>
+                );
             case "cuisine":
                 return 'Select the cuisine type. Choose "Add Cuisine" to create a new one.';
             case "dish_type":
@@ -551,7 +596,7 @@ const AddRecipe = () => {
                                                 onFocus={() =>
                                                     setFocusedField("cuisine")
                                                 }
-                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                                className="form-input"
                                                 placeholder="Enter new cuisine"
                                             />
                                             <button
@@ -582,7 +627,7 @@ const AddRecipe = () => {
                                                 onFocus={() =>
                                                     setFocusedField("dish_type")
                                                 }
-                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                                className="form-input"
                                                 placeholder="Enter new dish type"
                                             />
                                             <button
@@ -686,13 +731,18 @@ const AddRecipe = () => {
                                         setShowAddDishType(false);
                                     }}
                                     onBlur={() => setFocusedField(null)}
-                                    className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                    className={`form-input ${
                                         validationErrors.title
                                             ? "border-red-500"
-                                            : "border-gray-600"
-                                    } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
-                                    placeholder="Enter recipe title"
+                                            : ""
+                                    }`}
+                                    placeholder="e.g., Grandma's Secret Lasagna"
+                                    maxLength={TITLE_MAX_LENGTH}
                                 />
+                                <p className="character-count">
+                                    {recipe.title.length}/{TITLE_MAX_LENGTH}{" "}
+                                    characters
+                                </p>
                             </div>
                             {/* Description */}
                             <div>
@@ -709,10 +759,15 @@ const AddRecipe = () => {
                                         setShowAddDishType(false);
                                     }}
                                     onBlur={() => setFocusedField(null)}
-                                    className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
-                                    placeholder="Enter recipe description"
-                                    rows={3}
+                                    className="form-input"
+                                    placeholder="e.g., A creamy pasta dish perfect for cozy nights..."
+                                    rows={4}
+                                    maxLength={DESCRIPTION_MAX_LENGTH}
                                 />
+                                <p className="character-count">
+                                    {(recipe.description || "").length}/
+                                    {DESCRIPTION_MAX_LENGTH} characters
+                                </p>
                             </div>
                             {/* Cuisine & Dish Type (Same Row) */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -734,11 +789,11 @@ const AddRecipe = () => {
                                         onFocus={() =>
                                             setFocusedField("cuisine")
                                         }
-                                        className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                        className={`form-input ${
                                             validationErrors.cuisine
                                                 ? "border-red-500"
-                                                : "border-gray-600"
-                                        } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                                : ""
+                                        }`}
                                     >
                                         <option value="" disabled>
                                             Select Cuisine
@@ -774,11 +829,11 @@ const AddRecipe = () => {
                                         onFocus={() =>
                                             setFocusedField("dish_type")
                                         }
-                                        className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                        className={`form-input ${
                                             validationErrors.dish_type
                                                 ? "border-red-500"
-                                                : "border-gray-600"
-                                        } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                                : ""
+                                        }`}
                                     >
                                         <option value="" disabled>
                                             Select Dish Type
@@ -829,11 +884,11 @@ const AddRecipe = () => {
                                                 setShowAddDishType(false);
                                             }}
                                             onBlur={() => setFocusedField(null)}
-                                            className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                            className={`form-input ${
                                                 validationErrors.ingredients
                                                     ? "border-red-500"
-                                                    : "border-gray-600"
-                                            } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                                    : ""
+                                            }`}
                                             placeholder={`Ingredient ${
                                                 index + 1
                                             }`}
@@ -882,11 +937,11 @@ const AddRecipe = () => {
                                         setShowAddDishType(false);
                                     }}
                                     onBlur={() => setFocusedField(null)}
-                                    className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
+                                    className={`form-input ${
                                         validationErrors.instructions
                                             ? "border-red-500"
-                                            : "border-gray-600"
-                                    } focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700`}
+                                            : ""
+                                    }`}
                                     placeholder="Enter recipe instructions"
                                     rows={5}
                                 />
@@ -975,7 +1030,7 @@ const AddRecipe = () => {
                                                 onBlur={() =>
                                                     setFocusedField(null)
                                                 }
-                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                                className="form-input"
                                             />
                                             {imageFile && (
                                                 <p className="text-gray-400 mt-2">
@@ -1004,7 +1059,7 @@ const AddRecipe = () => {
                                                 onBlur={() =>
                                                     setFocusedField(null)
                                                 }
-                                                className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
+                                                className="form-input"
                                                 placeholder="https://example.com/image.jpg"
                                             />
                                             {imageUrlError && (
