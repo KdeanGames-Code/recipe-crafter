@@ -271,6 +271,30 @@ span.badge.bg-red-500 {
     background: #d97706; /* bg-yellow-600 */
 }
 
+/* Global browser scrollbar styling */
+html {
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #fbbf24 #2d3748; /* For Firefox */
+}
+
+html::-webkit-scrollbar {
+    width: 8px;
+}
+
+html::-webkit-scrollbar-track {
+    background: #2d3748; /* bg-gray-800 */
+    border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: #fbbf24; /* bg-yellow-500 */
+    border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background: #d97706; /* bg-yellow-600 */
+}
+
 /* Recipe popup styling */
 .recipe-popup {
     background: #1f2937 !important; /* bg-gray-900 */

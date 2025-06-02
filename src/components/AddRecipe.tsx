@@ -321,7 +321,7 @@ const AddRecipe = () => {
             setCuisines((prev) => [...prev, newCuisine.trim()]);
             setRecipe((prev) => ({ ...prev, cuisine: newCuisine.trim() }));
             setNewCuisine("");
-            setShowAddCuisine(false);
+            // Do not hide the input field here; let it persist until another element is focused
         }
     };
 
@@ -330,7 +330,7 @@ const AddRecipe = () => {
             setDishTypes((prev) => [...prev, newDishType.trim()]);
             setRecipe((prev) => ({ ...prev, dish_type: newDishType.trim() }));
             setNewDishType("");
-            setShowAddDishType(false);
+            // Do not hide the input field here; let it persist until another element is focused
         }
     };
 
@@ -468,11 +468,17 @@ const AddRecipe = () => {
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="p-6 min-h-screen flex">
+            <div className="flex">
                 {/* Left Column: Recipe Options Sidebar */}
                 <div
                     className="bg-gray-800 p-4 mr-4"
-                    style={{ minWidth: "200px", maxWidth: "500px" }}
+                    style={{
+                        minWidth: "200px",
+                        maxWidth: "500px",
+                        position: "sticky",
+                        top: "112px",
+                        height: "calc(100vh - 112px)",
+                    }}
                 >
                     <h2 className="text-2xl font-bold text-yellow-500 mb-4">
                         Recipe Options
@@ -509,6 +515,9 @@ const AddRecipe = () => {
                                                         e.target.value
                                                     )
                                                 }
+                                                onFocus={() =>
+                                                    setFocusedField("cuisine")
+                                                }
                                                 className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
                                                 placeholder="Enter new cuisine"
                                             />
@@ -536,6 +545,9 @@ const AddRecipe = () => {
                                                     setNewDishType(
                                                         e.target.value
                                                     )
+                                                }
+                                                onFocus={() =>
+                                                    setFocusedField("dish_type")
                                                 }
                                                 className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
                                                 placeholder="Enter new dish type"
@@ -594,7 +606,10 @@ const AddRecipe = () => {
                 </div>
 
                 {/* Right Column: Recipe Form */}
-                <div className="flex-1">
+                <div
+                    className="flex-1 p-6 overflow-y-auto custom-scrollbar"
+                    style={{ height: "calc(100vh - 112px)" }}
+                >
                     {id && (
                         <h2 className="text-2xl font-bold text-white mb-4">
                             Edit Recipe: {recipe.title || "Loading..."}
@@ -624,7 +639,11 @@ const AddRecipe = () => {
                                     name="title"
                                     value={recipe.title}
                                     onChange={handleInputChange}
-                                    onFocus={() => setFocusedField("title")}
+                                    onFocus={() => {
+                                        setFocusedField("title");
+                                        setShowAddCuisine(false);
+                                        setShowAddDishType(false);
+                                    }}
                                     onBlur={() => setFocusedField(null)}
                                     className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
                                         validationErrors.title
@@ -643,9 +662,11 @@ const AddRecipe = () => {
                                     name="description"
                                     value={recipe.description || ""}
                                     onChange={handleInputChange}
-                                    onFocus={() =>
-                                        setFocusedField("description")
-                                    }
+                                    onFocus={() => {
+                                        setFocusedField("description");
+                                        setShowAddCuisine(false);
+                                        setShowAddDishType(false);
+                                    }}
                                     onBlur={() => setFocusedField(null)}
                                     className="p-3 bg-gray-800 text-white rounded-lg w-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:bg-gray-700"
                                     placeholder="Enter recipe description"
@@ -672,7 +693,6 @@ const AddRecipe = () => {
                                         onFocus={() =>
                                             setFocusedField("cuisine")
                                         }
-                                        onBlur={() => setFocusedField(null)}
                                         className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
                                             validationErrors.cuisine
                                                 ? "border-red-500"
@@ -713,7 +733,6 @@ const AddRecipe = () => {
                                         onFocus={() =>
                                             setFocusedField("dish_type")
                                         }
-                                        onBlur={() => setFocusedField(null)}
                                         className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
                                             validationErrors.dish_type
                                                 ? "border-red-500"
@@ -763,9 +782,11 @@ const AddRecipe = () => {
                                                     e.target.value
                                                 )
                                             }
-                                            onFocus={() =>
-                                                setFocusedField("ingredients")
-                                            }
+                                            onFocus={() => {
+                                                setFocusedField("ingredients");
+                                                setShowAddCuisine(false);
+                                                setShowAddDishType(false);
+                                            }}
                                             onBlur={() => setFocusedField(null)}
                                             className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
                                                 validationErrors.ingredients
@@ -814,9 +835,11 @@ const AddRecipe = () => {
                                     name="instructions"
                                     value={recipe.instructions}
                                     onChange={handleInputChange}
-                                    onFocus={() =>
-                                        setFocusedField("instructions")
-                                    }
+                                    onFocus={() => {
+                                        setFocusedField("instructions");
+                                        setShowAddCuisine(false);
+                                        setShowAddDishType(false);
+                                    }}
                                     onBlur={() => setFocusedField(null)}
                                     className={`p-3 bg-gray-800 text-white rounded-lg w-full border ${
                                         validationErrors.instructions
@@ -901,9 +924,13 @@ const AddRecipe = () => {
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleImageUpload}
-                                                onFocus={() =>
-                                                    setFocusedField("image_url")
-                                                }
+                                                onFocus={() => {
+                                                    setFocusedField(
+                                                        "image_url"
+                                                    );
+                                                    setShowAddCuisine(false);
+                                                    setShowAddDishType(false);
+                                                }}
                                                 onBlur={() =>
                                                     setFocusedField(null)
                                                 }
@@ -926,9 +953,13 @@ const AddRecipe = () => {
                                                 name="image_url"
                                                 value={recipe.image_url || ""}
                                                 onChange={handleImageUrlChange}
-                                                onFocus={() =>
-                                                    setFocusedField("image_url")
-                                                }
+                                                onFocus={() => {
+                                                    setFocusedField(
+                                                        "image_url"
+                                                    );
+                                                    setShowAddCuisine(false);
+                                                    setShowAddDishType(false);
+                                                }}
                                                 onBlur={() =>
                                                     setFocusedField(null)
                                                 }
