@@ -532,6 +532,8 @@ html::-webkit-scrollbar-thumb:hover {
     display: flex !important;
     align-items: center !important;
     margin-bottom: 0.5rem !important; /* mb-2 */
+    gap: 0.5rem !important; /* space-x-2 */
+    flex-wrap: nowrap !important; /* Prevent wrapping */
 }
 
 /* Action button styling (e.g., Add Ingredient) */
@@ -612,12 +614,13 @@ html::-webkit-scrollbar-thumb:hover {
     background: #2d3748 !important; /* bg-gray-800 */
     color: #ffffff !important; /* text-white */
     border-radius: 0.5rem !important; /* rounded-lg */
-    width: 100% !important; /* w-full */
+    width: 100% !important; /* w-full by default */
     border: 1px solid #4b5563 !important; /* border-gray-600 */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
         -2px -2px 4px rgba(255, 255, 255, 0.05) !important; /* 3D shadow */
     transition: background 0.2s ease, box-shadow 0.2s ease,
         border-color 0.2s ease !important;
+    box-sizing: border-box !important; /* Ensure padding and border are included in width */
 }
 
 .form-input:focus {
@@ -633,4 +636,28 @@ html::-webkit-scrollbar-thumb:hover {
     color: #9ca3af !important; /* text-gray-400 */
     font-size: 0.875rem !important; /* text-sm */
     margin-top: 0.25rem !important; /* mt-1 */
+}
+
+/* Selected option styling (for dropdowns) */
+.selected-option {
+    color: #d1d5db !important; /* text-gray-300 */
+    font-size: 0.875rem !important; /* text-sm */
+    margin-top: 0.25rem !important; /* mt-1 */
+}
+
+/* Dijon mustard color for labels */
+.text-dijon {
+    color: #c68e17 !important; /* Dijon mustard shade */
+}
+
+/* Specific styles for Ingredients section fields */
+.ingredient-item select.form-input,
+.ingredient-item input.form-input:not(:last-child) {
+    width: 180px !important; /* Override w-full for Unit, Whole Number, and Fraction */
+    flex: 0 0 180px !important; /* Prevent flex growth/shrink */
+}
+
+.ingredient-item input.form-input:last-child {
+    flex: 1 !important; /* Allow Ingredient Name to fill remaining space */
+    min-width: 0 !important; /* Prevent overflow */
 }

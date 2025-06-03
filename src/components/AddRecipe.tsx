@@ -5,30 +5,69 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import API_BASE_URL from "../config/apiConfig";
 import placeholderPopup from "../assets/images/placeholder-kitchen-672x448.png";
+import IngredientRow from "./IngredientRow";
+import InfoBox from "./InfoBox";
+import {
+    handleInputChange,
+    handleImageUpload,
+    handleImageUrlChange,
+} from "../utils/formUtils";
+import {
+    addIngredient,
+    removeIngredient,
+    handleIngredientChange,
+    handleIngredientUnitChange,
+    fractionToDecimal,
+} from "../utils/ingredientUtils";
 
-interface Tag {
+export interface Tag {
     tag_type: "allergen" | "dietary";
     tag_name: string;
 }
 
-interface Recipe {
+export interface Recipe {
     id?: number;
     title: string;
     description?: string;
     cuisine: string;
     dish_type: string;
-    ingredients: string[];
+    ingredients: { quantity: number; unit: string; name: string }[];
+    instructions: InstructionSection[] | string;
+    image_url?: string;
+}
+
+export interface FetchedRecipe {
+    id?: number;
+    title: string;
+    description?: string;
+    cuisine: string;
+    dish_type: string;
+    ingredients?: (string | { quantity: number; unit: string; name: string })[];
     instructions: string;
     image_url?: string;
 }
 
-interface TagBadge {
+export interface TagBadge {
     type: "allergen" | "dietary";
     value: string;
 }
 
+export interface Ingredient {
+    wholeNumber: number;
+    fraction: string;
+    quantity: number;
+    unit: string;
+    name: string;
+}
+
+export interface InstructionSection {
+    title: string;
+    steps: string[];
+}
+
 const ItemTypes = {
     TAG: "tag",
+    SECTION: "section",
 };
 
 const TagBadge = ({
@@ -132,6 +171,175 @@ const TagBox = ({
     );
 };
 
+// Component for a single instruction section with drag-and-drop
+const InstructionSectionComponent = ({
+    section,
+    sectionIndex,
+    updateSectionTitle,
+    addStep,
+    updateStep,
+    removeStep,
+    removeSection,
+    moveSection,
+}: {
+    section: InstructionSection;
+    sectionIndex: number;
+    updateSectionTitle: (sectionIndex: number, title: string) => void;
+    addStep: (sectionIndex: number) => void;
+    updateStep: (
+        sectionIndex: number,
+        stepIndex: number,
+        value: string
+    ) => void;
+    removeStep: (sectionIndex: number, stepIndex: number) => void;
+    removeSection: (sectionIndex: number) => void;
+    moveSection: (dragIndex: number, hoverIndex: number) => void;
+}) => {
+    const suggestedTitles = [
+        "Preparation",
+        "Cooking",
+        "Assembly",
+        "Serving",
+        "Baking",
+        "Marinade",
+        "Garnishing",
+        "Cooling",
+        "Storage",
+        "Tips",
+        "Custom",
+    ];
+
+    const [showCustomInput, setShowCustomInput] = useState<boolean>(
+        !suggestedTitles.includes(section.title) && section.title !== ""
+    );
+
+    const ref = useRef<HTMLDivElement>(null);
+
+    const [{ isDragging }, drag] = useDrag({
+        type: ItemTypes.SECTION,
+        item: { index: sectionIndex },
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+    });
+
+    const [, drop] = useDrop({
+        accept: ItemTypes.SECTION,
+        hover: (item: { index: number }) => {
+            if (!ref.current) return;
+            const dragIndex = item.index;
+            const hoverIndex = sectionIndex;
+
+            if (dragIndex === hoverIndex) return;
+
+            moveSection(dragIndex, hoverIndex);
+            item.index = hoverIndex; // Update the index for subsequent hovers
+        },
+    });
+
+    drag(drop(ref));
+
+    const handleTitleChange = (
+        e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+    ) => {
+        const value = e.target.value;
+        if (value === "Custom") {
+            setShowCustomInput(true);
+            updateSectionTitle(sectionIndex, "");
+        } else {
+            setShowCustomInput(false);
+            updateSectionTitle(sectionIndex, value);
+        }
+    };
+
+    return (
+        <div
+            ref={ref}
+            className={`mb-4 p-4 bg-gray-700 rounded-lg ${
+                isDragging ? "opacity-50" : ""
+            }`}
+            style={{ cursor: "move" }}
+        >
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                    {showCustomInput ? (
+                        <input
+                            type="text"
+                            value={section.title}
+                            onChange={(e) =>
+                                updateSectionTitle(sectionIndex, e.target.value)
+                            }
+                            onFocus={() => handleFocus("instructions")}
+                            onBlur={() => setFocusedField(null)}
+                            className="form-input w-64"
+                            placeholder="Enter section title"
+                        />
+                    ) : (
+                        <select
+                            value={section.title || ""}
+                            onChange={handleTitleChange}
+                            onFocus={() => handleFocus("instructions")}
+                            onBlur={() => setFocusedField(null)}
+                            className="form-input w-64"
+                        >
+                            <option value="" disabled>
+                                Select Section Title
+                            </option>
+                            {suggestedTitles.map((title) => (
+                                <option key={title} value={title}>
+                                    {title}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+                </div>
+                <button
+                    type="button"
+                    onClick={() => removeSection(sectionIndex)}
+                    className="remove-button"
+                >
+                    <i className="fas fa-trash"></i>
+                </button>
+            </div>
+            {section.steps.map((step, stepIndex) => (
+                <div key={stepIndex} className="flex items-center gap-2 mb-2">
+                    <span className="text-yellow-500 w-8">{`${
+                        stepIndex + 1
+                    }.`}</span>
+                    <input
+                        type="text"
+                        value={step}
+                        onChange={(e) =>
+                            updateStep(sectionIndex, stepIndex, e.target.value)
+                        }
+                        onFocus={() => handleFocus("instructions")}
+                        onBlur={() => setFocusedField(null)}
+                        className="form-input flex-1"
+                        placeholder={`Step ${stepIndex + 1}`}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => removeStep(sectionIndex, stepIndex)}
+                        className="remove-button"
+                    >
+                        <i className="fas fa-trash"></i>
+                    </button>
+                </div>
+            ))}
+            <button
+                type="button"
+                onClick={() => addStep(sectionIndex)}
+                className="action-button"
+            >
+                <i className="fas fa-plus-circle mr-1"></i> Add Step
+            </button>
+        </div>
+    );
+};
+
+let handleFocus: (field: string) => void;
+let setFocusedField: (field: string | null) => void;
+
 const AddRecipe = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -139,19 +347,19 @@ const AddRecipe = () => {
     const [dietaryTags, setDietaryTags] = useState<string[]>([]);
     const [cuisines, setCuisines] = useState<string[]>([]);
     const [dishTypes, setDishTypes] = useState<string[]>([]);
-    const [isLoadingTags, setIsLoadingTags] = useState(true);
+    const [isLoadingTags, setIsLoadingTags] = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [focusedField, setFocusedField] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [focusedField, setFocusedFieldState] = useState<string | null>(null);
 
-    // Form state
+    // Form state with pre-populated instructions
     const [recipe, setRecipe] = useState<Recipe>({
         title: "",
         description: "",
         cuisine: "",
         dish_type: "",
-        ingredients: [""],
-        instructions: "",
+        ingredients: [{ quantity: 0, unit: "unitless", name: "" }],
+        instructions: [{ title: "Preparation", steps: [""] }], // Pre-populate with a default section and step
         image_url: "",
     });
     const [selectedTags, setSelectedTags] = useState<TagBadge[]>([]);
@@ -165,15 +373,74 @@ const AddRecipe = () => {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageUrlError, setImageUrlError] = useState<string>("");
 
-    // Add Cuisine/Dish Type state
-    const [showAddCuisine, setShowAddCuisine] = useState(false);
-    const [newCuisine, setNewCuisine] = useState("");
-    const [showAddDishType, setShowAddDishType] = useState(false);
-    const [newDishType, setNewDishType] = useState("");
+    // Add Cuisine/Dish Type/Unit state
+    const [showAddCuisine, setShowAddCuisine] = useState<boolean>(false);
+    const [newCuisine, setNewCuisine] = useState<string>("");
+    const [showAddDishType, setShowAddDishType] = useState<boolean>(false);
+    const [newDishType, setNewDishType] = useState<string>("");
+    const [showAddUnit, setShowAddUnit] = useState<boolean>(false);
+    const [newUnit, setNewUnit] = useState<string>("");
+    const [units, setUnits] = useState<string[]>([
+        "cup",
+        "teaspoon",
+        "tablespoon",
+        "liter",
+        "milliliter",
+        "gram",
+        "kilogram",
+        "ounce",
+        "pound",
+        "unitless",
+    ]);
+
+    // State for ingredients with fractional support
+    const [ingredients, setIngredients] = useState<Ingredient[]>([
+        {
+            wholeNumber: 0,
+            fraction: "",
+            quantity: 0,
+            unit: "unitless",
+            name: "",
+        },
+    ]);
+
+    // Common fractions (excluding whole numbers since we have a Whole Number input)
+    const fractions = ["", "1/8", "1/4", "1/3", "1/2", "2/3", "3/4"];
+
+    // Units that typically use fractions
+    const fractionalUnits = ["cup", "teaspoon", "tablespoon"];
 
     // Character limits
     const TITLE_MAX_LENGTH = 100;
     const DESCRIPTION_MAX_LENGTH = 500;
+
+    // Assign handleFocus and setFocusedField
+    handleFocus = (field: string) => {
+        setFocusedFieldState(field);
+        setShowAddCuisine(false);
+        setShowAddDishType(false);
+        setShowAddUnit(false);
+    };
+
+    setFocusedField = (field: string | null) => {
+        setFocusedFieldState(field);
+    };
+
+    // Update recipe.ingredients whenever ingredients state changes
+    useEffect(() => {
+        const updatedIngredients = ingredients.map((ingredient) => {
+            const isFractionalUnit = fractionalUnits.includes(ingredient.unit);
+            const fractionValue = isFractionalUnit
+                ? fractionToDecimal(ingredient.fraction)
+                : 0;
+            return {
+                quantity: ingredient.wholeNumber + fractionValue,
+                unit: ingredient.unit,
+                name: ingredient.name,
+            };
+        });
+        setRecipe((prev) => ({ ...prev, ingredients: updatedIngredients }));
+    }, [ingredients]);
 
     // Load tags and recipe data
     useEffect(() => {
@@ -233,14 +500,127 @@ const AddRecipe = () => {
             axios
                 .get(`${API_BASE_URL}/recipes/${id}`)
                 .then((response) => {
-                    const fetchedRecipe = response.data;
+                    const fetchedRecipe: FetchedRecipe = response.data;
+                    const loadedIngredients = fetchedRecipe.ingredients
+                        ? fetchedRecipe.ingredients.map(
+                              (
+                                  item:
+                                      | string
+                                      | {
+                                            quantity: number;
+                                            unit: string;
+                                            name: string;
+                                        }
+                              ) => {
+                                  if (typeof item === "string") {
+                                      const parts = item.trim().split(" ");
+                                      let quantity = 0;
+                                      let unitIndex = 1;
+                                      let wholeNumber = 0;
+                                      let fraction = "";
+                                      if (parts.length >= 3) {
+                                          if (parts[1].includes("/")) {
+                                              wholeNumber =
+                                                  parseInt(parts[0]) || 0;
+                                              fraction = parts[1];
+                                              quantity =
+                                                  wholeNumber +
+                                                  fractionToDecimal(fraction);
+                                              unitIndex = 2;
+                                          } else {
+                                              quantity =
+                                                  parseFloat(parts[0]) || 0;
+                                              wholeNumber =
+                                                  Math.floor(quantity);
+                                              const fracValue =
+                                                  quantity - wholeNumber;
+                                              fraction = fractions.reduce(
+                                                  (closest, f) => {
+                                                      const fValue =
+                                                          fractionToDecimal(f);
+                                                      return Math.abs(
+                                                          fValue - fracValue
+                                                      ) <
+                                                          Math.abs(
+                                                              fractionToDecimal(
+                                                                  closest
+                                                              ) - fracValue
+                                                          )
+                                                          ? f
+                                                          : closest;
+                                                  },
+                                                  ""
+                                              );
+                                          }
+                                          return {
+                                              wholeNumber,
+                                              fraction,
+                                              quantity,
+                                              unit: parts[unitIndex],
+                                              name: parts
+                                                  .slice(unitIndex + 1)
+                                                  .join(" "),
+                                          };
+                                      }
+                                      return {
+                                          wholeNumber: 0,
+                                          fraction: "",
+                                          quantity: 0,
+                                          unit: "unitless",
+                                          name: item,
+                                      };
+                                  }
+                                  const wholeNumber = Math.floor(item.quantity);
+                                  const fracValue = item.quantity - wholeNumber;
+                                  const fraction = fractions.reduce(
+                                      (closest, f) => {
+                                          const fValue = fractionToDecimal(f);
+                                          return Math.abs(fValue - fracValue) <
+                                              Math.abs(
+                                                  fractionToDecimal(closest) -
+                                                      fracValue
+                                              )
+                                              ? f
+                                              : closest;
+                                      },
+                                      ""
+                                  );
+                                  return {
+                                      wholeNumber,
+                                      fraction,
+                                      quantity: item.quantity,
+                                      unit: item.unit,
+                                      name: item.name,
+                                  };
+                              }
+                          )
+                        : [
+                              {
+                                  wholeNumber: 0,
+                                  fraction: "",
+                                  quantity: 0,
+                                  unit: "unitless",
+                                  name: "",
+                              },
+                          ];
+
+                    // Parse instructions string into structured format
+                    const parsedInstructions = parseInstructions(
+                        fetchedRecipe.instructions
+                    );
+
+                    setIngredients(loadedIngredients);
                     setRecipe({
                         title: fetchedRecipe.title || "",
                         description: fetchedRecipe.description || "",
                         cuisine: fetchedRecipe.cuisine || "",
                         dish_type: fetchedRecipe.dish_type || "",
-                        ingredients: fetchedRecipe.ingredients || [""],
-                        instructions: fetchedRecipe.instructions || "",
+                        ingredients: loadedIngredients.map((item) => ({
+                            quantity: item.quantity,
+                            unit: item.unit,
+                            name: item.name,
+                        })),
+                        instructions: parsedInstructions,
                         image_url: fetchedRecipe.image_url || "",
                     });
 
@@ -277,61 +657,71 @@ const AddRecipe = () => {
         }
     }, [id]);
 
-    // Handle form input changes
-    const handleInputChange = (
-        e: React.ChangeEvent<
-            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-        >
-    ) => {
-        const { name, value } = e.target;
-        if (name === "title" && value.length > TITLE_MAX_LENGTH) {
-            return; // Prevent typing beyond the character limit
+    // Function to parse instructions string into structured format
+    const parseInstructions = (instructions: string): InstructionSection[] => {
+        if (!instructions || instructions.trim() === "") {
+            return [{ title: "Preparation", steps: [""] }]; // Default section for new recipes
         }
-        if (name === "description" && value.length > DESCRIPTION_MAX_LENGTH) {
-            return; // Prevent typing beyond the character limit
-        }
-        setRecipe((prev) => ({ ...prev, [name]: value }));
-        setValidationErrors((prev) => ({ ...prev, [name]: "" }));
 
-        if (name === "cuisine") {
-            setShowAddCuisine(value === "add_cuisine");
+        const sections: InstructionSection[] = [];
+        const lines = instructions
+            .split("\n")
+            .filter((line) => line.trim() !== "");
+        let currentSection: InstructionSection | null = null;
+
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            const sectionMatch = trimmedLine.match(/^\[(.+)\]$/);
+            if (sectionMatch) {
+                if (currentSection) {
+                    sections.push(currentSection);
+                }
+                currentSection = { title: sectionMatch[1], steps: [] };
+            } else if (currentSection) {
+                const stepMatch = trimmedLine.match(/^\d+\.\s*(.+)$/);
+                if (stepMatch) {
+                    currentSection.steps.push(stepMatch[1]);
+                }
+            }
         }
-        if (name === "dish_type") {
-            setShowAddDishType(value === "add_dish_type");
+
+        if (currentSection) {
+            if (currentSection.steps.length === 0) {
+                currentSection.steps.push(""); // Ensure at least one step
+            }
+            sections.push(currentSection);
         }
+
+        if (sections.length === 0) {
+            sections.push({ title: "Preparation", steps: [""] });
+        }
+
+        return sections;
     };
 
-    // Handle ingredients list
-    const handleIngredientChange = (index: number, value: string) => {
-        const updatedIngredients = [...recipe.ingredients];
-        updatedIngredients[index] = value;
-        setRecipe((prev) => ({ ...prev, ingredients: updatedIngredients }));
-        setValidationErrors((prev) => ({ ...prev, ingredients: "" }));
+    // Function to serialize instructions back into a string
+    const serializeInstructions = (
+        instructions: InstructionSection[]
+    ): string => {
+        return instructions
+            .map((section) => {
+                if (!section.title.trim()) return "";
+                const sectionTitle = `[${section.title}]`;
+                const steps = section.steps
+                    .filter((step) => step.trim() !== "")
+                    .map((step, index) => `${index + 1}. ${step}`);
+                return [sectionTitle, ...steps].join("\n");
+            })
+            .filter((section) => section !== "")
+            .join("\n\n");
     };
 
-    const addIngredient = () => {
-        setRecipe((prev) => ({
-            ...prev,
-            ingredients: [...prev.ingredients, ""],
-        }));
-    };
-
-    const removeIngredient = (index: number) => {
-        if (recipe.ingredients.length > 1) {
-            const updatedIngredients = recipe.ingredients.filter(
-                (_, i) => i !== index
-            );
-            setRecipe((prev) => ({ ...prev, ingredients: updatedIngredients }));
-        }
-    };
-
-    // Handle adding new cuisines and dish types
+    // Handle adding new cuisines, dish types, and units
     const handleAddCuisine = () => {
         if (newCuisine.trim()) {
             setCuisines((prev) => [...prev, newCuisine.trim()]);
             setRecipe((prev) => ({ ...prev, cuisine: newCuisine.trim() }));
             setNewCuisine("");
-            // Do not hide the input field here; let it persist until another element is focused
         }
     };
 
@@ -340,40 +730,127 @@ const AddRecipe = () => {
             setDishTypes((prev) => [...prev, newDishType.trim()]);
             setRecipe((prev) => ({ ...prev, dish_type: newDishType.trim() }));
             setNewDishType("");
-            // Do not hide the input field here; let it persist until another element is focused
         }
     };
 
-    // Handle image file upload
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
+    const handleAddUnit = () => {
+        if (newUnit.trim()) {
+            setUnits((prev) => [...prev, newUnit.trim()]);
+            setNewUnit("");
+            setShowAddUnit(false);
+        }
+    };
+
+    // Instructions section handlers
+    const addInstructionSection = () => {
+        const newSection: InstructionSection = {
+            title: "Preparation",
+            steps: [""],
+        };
+        setRecipe((prev) => ({
+            ...prev,
+            instructions: [
+                ...(prev.instructions as InstructionSection[]),
+                newSection,
+            ],
+        }));
+    };
+
+    const updateSectionTitle = (sectionIndex: number, title: string) => {
+        setRecipe((prev) => {
+            const updatedInstructions = [
+                ...(prev.instructions as InstructionSection[]),
+            ];
+            updatedInstructions[sectionIndex] = {
+                ...updatedInstructions[sectionIndex],
+                title,
             };
-            reader.readAsDataURL(file);
-        }
+            return { ...prev, instructions: updatedInstructions };
+        });
     };
 
-    // Handle image URL change
-    const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const url = e.target.value;
-        setRecipe((prev) => ({ ...prev, image_url: url }));
-        setImageUrlError("");
-        if (url) {
-            const img = new Image();
-            img.src = url;
-            img.onload = () => setImagePreview(url);
-            img.onerror = () => setImageUrlError("Invalid image URL");
-        } else {
-            setImagePreview(null);
-        }
+    const addStep = (sectionIndex: number) => {
+        setRecipe((prev) => {
+            const updatedInstructions = [
+                ...(prev.instructions as InstructionSection[]),
+            ];
+            updatedInstructions[sectionIndex].steps.push("");
+            return { ...prev, instructions: updatedInstructions };
+        });
     };
 
-    // Handle form submission
-    const handleSubmit = async (e: React.FormEvent) => {
+    const updateStep = (
+        sectionIndex: number,
+        stepIndex: number,
+        value: string
+    ) => {
+        setRecipe((prev) => {
+            const updatedInstructions = [
+                ...(prev.instructions as InstructionSection[]),
+            ];
+            updatedInstructions[sectionIndex].steps[stepIndex] = value;
+            return { ...prev, instructions: updatedInstructions };
+        });
+    };
+
+    const removeStep = (sectionIndex: number, stepIndex: number) => {
+        setRecipe((prev) => {
+            const updatedInstructions = [
+                ...(prev.instructions as InstructionSection[]),
+            ];
+            updatedInstructions[sectionIndex].steps = updatedInstructions[
+                sectionIndex
+            ].steps.filter((_, index) => index !== stepIndex);
+            if (updatedInstructions[sectionIndex].steps.length === 0) {
+                updatedInstructions[sectionIndex].steps.push(""); // Ensure at least one step
+            }
+            return { ...prev, instructions: updatedInstructions };
+        });
+    };
+
+    const removeSection = (sectionIndex: number) => {
+        setRecipe((prev) => {
+            const updatedInstructions = (
+                prev.instructions as InstructionSection[]
+            ).filter((_, index) => index !== sectionIndex);
+            if (updatedInstructions.length === 0) {
+                updatedInstructions.push({ title: "Preparation", steps: [""] }); // Ensure at least one section
+            }
+            return { ...prev, instructions: updatedInstructions };
+        });
+    };
+
+    const moveSection = (dragIndex: number, hoverIndex: number) => {
+        setRecipe((prev) => {
+            const updatedInstructions = [
+                ...(prev.instructions as InstructionSection[]),
+            ];
+            const [draggedSection] = updatedInstructions.splice(dragIndex, 1);
+            updatedInstructions.splice(hoverIndex, 0, draggedSection);
+            return { ...prev, instructions: updatedInstructions };
+        });
+    };
+
+    // Override handleSubmit to serialize instructions before saving
+    const customHandleSubmit = async (
+        e: React.FormEvent,
+        recipe: Recipe,
+        ingredients: Ingredient[],
+        imageState: {
+            imageMode: "upload" | "url";
+            imageFile: File | null;
+            imagePreview: string | null;
+            imageUrlError: string;
+        },
+        selectedTags: TagBadge[],
+        setValidationErrors: React.Dispatch<
+            React.SetStateAction<{ [key: string]: string }>
+        >,
+        setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>,
+        navigate: (path: string) => void,
+        API_BASE_URL: string,
+        id?: string
+    ) => {
         e.preventDefault();
         setValidationErrors({});
 
@@ -382,10 +859,36 @@ const AddRecipe = () => {
         if (!recipe.title.trim()) errors.title = "Title is required.";
         if (!recipe.cuisine) errors.cuisine = "Cuisine is required.";
         if (!recipe.dish_type) errors.dish_type = "Dish Type is required.";
-        if (recipe.ingredients.every((ingredient) => !ingredient.trim()))
-            errors.ingredients = "At least one ingredient is required.";
-        if (!recipe.instructions.trim())
-            errors.instructions = "Instructions are required.";
+        if (
+            ingredients.every((ingredient) => !ingredient.name.trim()) ||
+            ingredients.length === 0
+        ) {
+            errors.ingredients =
+                "At least one ingredient with a name is required.";
+        } else {
+            const invalidQuantity = ingredients.some(
+                (ingredient) =>
+                    ingredient.quantity < 0 ||
+                    (ingredient.quantity === 0 &&
+                        ingredient.unit !== "unitless")
+            );
+            if (invalidQuantity) {
+                errors.ingredients =
+                    "Quantity must be positive (or 0 for 'unitless').";
+            }
+        }
+
+        // Validate instructions
+        const instructions = recipe.instructions as InstructionSection[];
+        const hasValidInstructions = instructions.some(
+            (section) =>
+                section.title.trim() !== "" &&
+                section.steps.some((step) => step.trim() !== "")
+        );
+        if (!hasValidInstructions) {
+            errors.instructions =
+                "At least one section with at least one non-empty step is required.";
+        }
 
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
@@ -395,18 +898,20 @@ const AddRecipe = () => {
         setIsSubmitting(true);
         try {
             let recipeId: number;
+            // Serialize instructions back into a string
+            const serializedInstructions = serializeInstructions(instructions);
             const recipeData = {
                 ...recipe,
                 ingredients: recipe.ingredients.filter((ingredient) =>
-                    ingredient.trim()
+                    ingredient.name.trim()
                 ),
+                instructions: serializedInstructions,
             };
 
             // Handle image data
-            if (imageMode === "upload" && imageFile) {
-                // Simulate upload by converting to Base64 (replace with actual API upload in production)
+            if (imageState.imageMode === "upload" && imageState.imageFile) {
                 const reader = new FileReader();
-                reader.readAsDataURL(imageFile);
+                reader.readAsDataURL(imageState.imageFile);
                 await new Promise((resolve) => {
                     reader.onload = () => {
                         recipeData.image_url = reader.result as string;
@@ -416,11 +921,9 @@ const AddRecipe = () => {
             }
 
             if (id) {
-                // Update existing recipe
                 await axios.put(`${API_BASE_URL}/recipes/${id}`, recipeData);
                 recipeId = parseInt(id);
             } else {
-                // Create new recipe
                 const response = await axios.post(
                     `${API_BASE_URL}/recipes`,
                     recipeData
@@ -428,7 +931,6 @@ const AddRecipe = () => {
                 recipeId = response.data.id;
             }
 
-            // Update tags
             const tags = selectedTags.map((tag) => ({
                 tag_type: tag.type,
                 tag_name: tag.value,
@@ -445,91 +947,6 @@ const AddRecipe = () => {
             });
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    // Info box content based on focused field
-    const getInfoBoxContent = () => {
-        switch (focusedField) {
-            case "title":
-                return (
-                    <div>
-                        <p className="mb-2">
-                            Enter a descriptive title for your recipe (e.g.,
-                            "Spicy Chicken Tacos").
-                        </p>
-                        <p className="mb-2">
-                            Need inspiration? Try these creative names:
-                        </p>
-                        <ul className="list-disc list-inside">
-                            <li>Grandma's Secret Lasagna</li>
-                            <li>Spicy Midnight Tacos</li>
-                            <li>Sunset Citrus Salad</li>
-                        </ul>
-                    </div>
-                );
-            case "description":
-                return (
-                    <div>
-                        <p className="mb-2">
-                            Provide a brief description of your recipe,
-                            including any special notes or serving suggestions.
-                        </p>
-                        <p className="mb-2">
-                            Here are some examples to inspire you:
-                        </p>
-                        <ul className="list-disc list-inside">
-                            <li>
-                                A creamy pasta dish perfect for cozy nights,
-                                best served with garlic bread.
-                            </li>
-                            <li>
-                                This tangy salad brings summer vibes, great for
-                                picnics or BBQs!
-                            </li>
-                        </ul>
-                    </div>
-                );
-            case "cuisine":
-                return 'Select the cuisine type. Choose "Add Cuisine" to create a new one.';
-            case "dish_type":
-                return 'Select the dish type (e.g., Main Course, Dessert). Choose "Add Dish Type" to create a new one.';
-            case "ingredients":
-                return "List each ingredient required for the recipe. Add or remove ingredients as needed.";
-            case "instructions":
-                return "Provide step-by-step instructions for preparing the recipe. Use new lines for each step.";
-            case "allergens":
-                return "Drag allergen tags from the sidebar to this section if the recipe contains them.";
-            case "dietary":
-                return "Drag dietary tags from the sidebar to this section if the recipe matches these diets.";
-            case "image_url":
-                return imageMode === "upload"
-                    ? "Upload an image of your recipe. A preview will appear once selected."
-                    : "Enter a URL for the recipe image. A preview will appear if the URL is valid.";
-            default:
-                return (
-                    <div>
-                        <p className="mb-2">
-                            Welcome to the Recipe Crafter! Use this form to add
-                            or edit a recipe.
-                        </p>
-                        <p className="mb-2">
-                            The <strong>Recipe Options</strong> pane on the left
-                            provides tools and options to assist with filling
-                            out the form, such as importing a recipe or
-                            selecting tags.
-                        </p>
-                        <p className="mb-2">
-                            This instruction area will provide guidance on each
-                            task as you progress through the form.
-                        </p>
-                        <p className="mb-2">
-                            Start by entering a title for your recipe in the
-                            form on the right.
-                        </p>
-                        <p>Required fields are marked with an asterisk (*).</p>
-                    </div>
-                );
         }
     };
 
@@ -575,7 +992,10 @@ const AddRecipe = () => {
                                         Instructions
                                     </h3>
                                     <div className="text-gray-400">
-                                        {getInfoBoxContent()}
+                                        <InfoBox
+                                            focusedField={focusedField}
+                                            imageMode={imageMode}
+                                        />
                                     </div>
                                 </div>
                                 {/* Add Cuisine */}
@@ -594,7 +1014,7 @@ const AddRecipe = () => {
                                                     )
                                                 }
                                                 onFocus={() =>
-                                                    setFocusedField("cuisine")
+                                                    handleFocus("cuisine")
                                                 }
                                                 className="form-input"
                                                 placeholder="Enter new cuisine"
@@ -625,7 +1045,7 @@ const AddRecipe = () => {
                                                     )
                                                 }
                                                 onFocus={() =>
-                                                    setFocusedField("dish_type")
+                                                    handleFocus("dish_type")
                                                 }
                                                 className="form-input"
                                                 placeholder="Enter new dish type"
@@ -633,6 +1053,35 @@ const AddRecipe = () => {
                                             <button
                                                 type="button"
                                                 onClick={handleAddDishType}
+                                                className="ml-2 text-yellow-500 hover:text-yellow-400"
+                                            >
+                                                <i className="fas fa-plus-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {/* Add Unit */}
+                                {showAddUnit && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-yellow-500 mb-2">
+                                            Add New Unit
+                                        </h3>
+                                        <div className="flex items-center mb-2">
+                                            <input
+                                                type="text"
+                                                value={newUnit}
+                                                onChange={(e) =>
+                                                    setNewUnit(e.target.value)
+                                                }
+                                                onFocus={() =>
+                                                    handleFocus("ingredients")
+                                                }
+                                                className="form-input"
+                                                placeholder="Enter new unit"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleAddUnit}
                                                 className="ml-2 text-yellow-500 hover:text-yellow-400"
                                             >
                                                 <i className="fas fa-plus-circle"></i>
@@ -707,11 +1156,32 @@ const AddRecipe = () => {
                                 {validationErrors.form}
                             </p>
                         )}
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form
+                            onSubmit={(e) =>
+                                customHandleSubmit(
+                                    e,
+                                    recipe,
+                                    ingredients,
+                                    {
+                                        imageMode,
+                                        imageFile,
+                                        imagePreview,
+                                        imageUrlError,
+                                    },
+                                    selectedTags,
+                                    setValidationErrors,
+                                    setIsSubmitting,
+                                    navigate,
+                                    API_BASE_URL,
+                                    id
+                                )
+                            }
+                            className="space-y-6"
+                        >
                             {/* Title */}
                             <div>
                                 <div className="label-group">
-                                    <label className="block text-yellow-500 mb-1">
+                                    <label className="block text-yellow-500 text-lg font-semibold mb-1">
                                         Title *
                                     </label>
                                     {validationErrors.title && (
@@ -724,12 +1194,19 @@ const AddRecipe = () => {
                                     type="text"
                                     name="title"
                                     value={recipe.title}
-                                    onChange={handleInputChange}
-                                    onFocus={() => {
-                                        setFocusedField("title");
-                                        setShowAddCuisine(false);
-                                        setShowAddDishType(false);
-                                    }}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            e,
+                                            setRecipe,
+                                            setValidationErrors,
+                                            setShowAddCuisine,
+                                            setShowAddDishType,
+                                            setShowAddUnit,
+                                            TITLE_MAX_LENGTH,
+                                            DESCRIPTION_MAX_LENGTH
+                                        )
+                                    }
+                                    onFocus={() => handleFocus("title")}
                                     onBlur={() => setFocusedField(null)}
                                     className={`form-input ${
                                         validationErrors.title
@@ -746,18 +1223,25 @@ const AddRecipe = () => {
                             </div>
                             {/* Description */}
                             <div>
-                                <label className="block text-yellow-500 mb-1">
+                                <label className="block text-yellow-500 text-lg font-semibold mb-1">
                                     Description
                                 </label>
                                 <textarea
                                     name="description"
                                     value={recipe.description || ""}
-                                    onChange={handleInputChange}
-                                    onFocus={() => {
-                                        setFocusedField("description");
-                                        setShowAddCuisine(false);
-                                        setShowAddDishType(false);
-                                    }}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            e,
+                                            setRecipe,
+                                            setValidationErrors,
+                                            setShowAddCuisine,
+                                            setShowAddDishType,
+                                            setShowAddUnit,
+                                            TITLE_MAX_LENGTH,
+                                            DESCRIPTION_MAX_LENGTH
+                                        )
+                                    }
+                                    onFocus={() => handleFocus("description")}
                                     onBlur={() => setFocusedField(null)}
                                     className="form-input"
                                     placeholder="e.g., A creamy pasta dish perfect for cozy nights..."
@@ -773,7 +1257,7 @@ const AddRecipe = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <div className="label-group">
-                                        <label className="block text-yellow-500 mb-1">
+                                        <label className="block text-yellow-500 text-lg font-semibold mb-1">
                                             Cuisine *
                                         </label>
                                         {validationErrors.cuisine && (
@@ -785,10 +1269,20 @@ const AddRecipe = () => {
                                     <select
                                         name="cuisine"
                                         value={recipe.cuisine}
-                                        onChange={handleInputChange}
-                                        onFocus={() =>
-                                            setFocusedField("cuisine")
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                e,
+                                                setRecipe,
+                                                setValidationErrors,
+                                                setShowAddCuisine,
+                                                setShowAddDishType,
+                                                setShowAddUnit,
+                                                TITLE_MAX_LENGTH,
+                                                DESCRIPTION_MAX_LENGTH
+                                            )
                                         }
+                                        onFocus={() => handleFocus("cuisine")}
+                                        onBlur={() => setFocusedField(null)}
                                         className={`form-input ${
                                             validationErrors.cuisine
                                                 ? "border-red-500"
@@ -810,10 +1304,16 @@ const AddRecipe = () => {
                                             </option>
                                         ))}
                                     </select>
+                                    {recipe.cuisine &&
+                                        recipe.cuisine !== "add_cuisine" && (
+                                            <p className="selected-option">
+                                                Selected: {recipe.cuisine}
+                                            </p>
+                                        )}
                                 </div>
                                 <div>
                                     <div className="label-group">
-                                        <label className="block text-yellow-500 mb-1">
+                                        <label className="block text-yellow-500 text-lg font-semibold mb-1">
                                             Dish Type *
                                         </label>
                                         {validationErrors.dish_type && (
@@ -825,10 +1325,20 @@ const AddRecipe = () => {
                                     <select
                                         name="dish_type"
                                         value={recipe.dish_type}
-                                        onChange={handleInputChange}
-                                        onFocus={() =>
-                                            setFocusedField("dish_type")
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                e,
+                                                setRecipe,
+                                                setValidationErrors,
+                                                setShowAddCuisine,
+                                                setShowAddDishType,
+                                                setShowAddUnit,
+                                                TITLE_MAX_LENGTH,
+                                                DESCRIPTION_MAX_LENGTH
+                                            )
                                         }
+                                        onFocus={() => handleFocus("dish_type")}
+                                        onBlur={() => setFocusedField(null)}
                                         className={`form-input ${
                                             validationErrors.dish_type
                                                 ? "border-red-500"
@@ -850,6 +1360,13 @@ const AddRecipe = () => {
                                             </option>
                                         ))}
                                     </select>
+                                    {recipe.dish_type &&
+                                        recipe.dish_type !==
+                                            "add_dish_type" && (
+                                            <p className="selected-option">
+                                                Selected: {recipe.dish_type}
+                                            </p>
+                                        )}
                                 </div>
                             </div>
                             {/* Ingredients */}
@@ -864,51 +1381,84 @@ const AddRecipe = () => {
                                         </p>
                                     )}
                                 </div>
-                                {recipe.ingredients.map((ingredient, index) => (
-                                    <div
-                                        key={index}
-                                        className="ingredient-item"
+                                {/* Field Labels */}
+                                <div className="flex gap-2 mb-2">
+                                    <span
+                                        className="text-dijon"
+                                        style={{ width: "180px" }}
                                     >
-                                        <input
-                                            type="text"
-                                            value={ingredient}
-                                            onChange={(e) =>
-                                                handleIngredientChange(
-                                                    index,
-                                                    e.target.value
-                                                )
-                                            }
-                                            onFocus={() => {
-                                                setFocusedField("ingredients");
-                                                setShowAddCuisine(false);
-                                                setShowAddDishType(false);
-                                            }}
-                                            onBlur={() => setFocusedField(null)}
-                                            className={`form-input ${
-                                                validationErrors.ingredients
-                                                    ? "border-red-500"
-                                                    : ""
-                                            }`}
-                                            placeholder={`Ingredient ${
-                                                index + 1
-                                            }`}
-                                        />
-                                        {recipe.ingredients.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeIngredient(index)
-                                                }
-                                                className="remove-button"
-                                            >
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        )}
-                                    </div>
+                                        Unit
+                                    </span>
+                                    <span
+                                        className="text-dijon"
+                                        style={{ width: "180px" }}
+                                    >
+                                        Whole Number
+                                    </span>
+                                    <span
+                                        className="text-dijon"
+                                        style={{ width: "180px" }}
+                                    >
+                                        Fraction
+                                    </span>
+                                    <span className="text-dijon flex-1">
+                                        Ingredient Name
+                                    </span>
+                                    <span className="w-6"></span>{" "}
+                                    {/* Spacer for Remove button */}
+                                </div>
+                                {ingredients.map((ingredient, index) => (
+                                    <IngredientRow
+                                        key={index}
+                                        ingredient={ingredient}
+                                        index={index}
+                                        units={units}
+                                        fractionalUnits={fractionalUnits}
+                                        fractions={fractions}
+                                        handleIngredientChange={(
+                                            index,
+                                            field,
+                                            value
+                                        ) =>
+                                            handleIngredientChange(
+                                                index,
+                                                field,
+                                                value,
+                                                ingredients,
+                                                setIngredients,
+                                                setValidationErrors
+                                            )
+                                        }
+                                        handleIngredientUnitChange={(
+                                            index,
+                                            value
+                                        ) =>
+                                            handleIngredientUnitChange(
+                                                index,
+                                                value,
+                                                ingredients,
+                                                setIngredients,
+                                                setValidationErrors,
+                                                fractionalUnits
+                                            )
+                                        }
+                                        removeIngredient={(index) =>
+                                            removeIngredient(
+                                                index,
+                                                ingredients,
+                                                setIngredients
+                                            )
+                                        }
+                                        handleFocus={handleFocus}
+                                        setFocusedField={setFocusedField}
+                                        showRemove={ingredients.length > 1}
+                                    />
                                 ))}
                                 <button
                                     type="button"
-                                    onClick={addIngredient}
+                                    onClick={() =>
+                                        addIngredient(setIngredients)
+                                    }
                                     className="action-button"
                                 >
                                     <i className="fas fa-plus-circle mr-1"></i>{" "}
@@ -927,24 +1477,33 @@ const AddRecipe = () => {
                                         </p>
                                     )}
                                 </div>
-                                <textarea
-                                    name="instructions"
-                                    value={recipe.instructions}
-                                    onChange={handleInputChange}
-                                    onFocus={() => {
-                                        setFocusedField("instructions");
-                                        setShowAddCuisine(false);
-                                        setShowAddDishType(false);
-                                    }}
-                                    onBlur={() => setFocusedField(null)}
-                                    className={`form-input ${
-                                        validationErrors.instructions
-                                            ? "border-red-500"
-                                            : ""
-                                    }`}
-                                    placeholder="Enter recipe instructions"
-                                    rows={5}
-                                />
+                                <div className="instructions-box p-4 border-2 border-dashed border-gray-600 rounded-lg min-h-[150px] overflow-y-auto custom-scrollbar mb-4">
+                                    {(
+                                        recipe.instructions as InstructionSection[]
+                                    ).map((section, sectionIndex) => (
+                                        <InstructionSectionComponent
+                                            key={sectionIndex}
+                                            section={section}
+                                            sectionIndex={sectionIndex}
+                                            updateSectionTitle={
+                                                updateSectionTitle
+                                            }
+                                            addStep={addStep}
+                                            updateStep={updateStep}
+                                            removeStep={removeStep}
+                                            removeSection={removeSection}
+                                            moveSection={moveSection}
+                                        />
+                                    ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addInstructionSection}
+                                    className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 font-semibold py-2 px-4 rounded-lg border border-yellow-500 shadow-lg hover:from-yellow-300 hover:to-yellow-500 hover:shadow-xl active:shadow-inner transition-all duration-200"
+                                >
+                                    <i className="fas fa-plus-circle mr-1"></i>{" "}
+                                    Add Section
+                                </button>
                             </div>
                             {/* Allergens & Dietary Tags (Same Row) */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1019,14 +1578,16 @@ const AddRecipe = () => {
                                             <input
                                                 type="file"
                                                 accept="image/*"
-                                                onChange={handleImageUpload}
-                                                onFocus={() => {
-                                                    setFocusedField(
-                                                        "image_url"
-                                                    );
-                                                    setShowAddCuisine(false);
-                                                    setShowAddDishType(false);
-                                                }}
+                                                onChange={(e) =>
+                                                    handleImageUpload(
+                                                        e,
+                                                        setImageFile,
+                                                        setImagePreview
+                                                    )
+                                                }
+                                                onFocus={() =>
+                                                    handleFocus("image_url")
+                                                }
                                                 onBlur={() =>
                                                     setFocusedField(null)
                                                 }
@@ -1048,14 +1609,17 @@ const AddRecipe = () => {
                                                 type="text"
                                                 name="image_url"
                                                 value={recipe.image_url || ""}
-                                                onChange={handleImageUrlChange}
-                                                onFocus={() => {
-                                                    setFocusedField(
-                                                        "image_url"
-                                                    );
-                                                    setShowAddCuisine(false);
-                                                    setShowAddDishType(false);
-                                                }}
+                                                onChange={(e) =>
+                                                    handleImageUrlChange(
+                                                        e,
+                                                        setRecipe,
+                                                        setImageUrlError,
+                                                        setImagePreview
+                                                    )
+                                                }
+                                                onFocus={() =>
+                                                    handleFocus("image_url")
+                                                }
                                                 onBlur={() =>
                                                     setFocusedField(null)
                                                 }
