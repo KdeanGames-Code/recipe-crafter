@@ -1,3 +1,5 @@
+/* AddRecipe.tsx - Component for adding or editing a recipe in the Recipe Crafter app */
+
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -114,10 +116,12 @@ const TagBox = ({
     appliedTags,
     setAppliedTags,
     tagType,
+    onTagBoxClick,
 }: {
     appliedTags: TagBadge[];
     setAppliedTags: React.Dispatch<React.SetStateAction<TagBadge[]>>;
     tagType: "allergen" | "dietary";
+    onTagBoxClick: (tagType: "allergen" | "dietary") => void;
 }) => {
     const tagBoxRef = useRef<HTMLDivElement>(null);
 
@@ -148,12 +152,18 @@ const TagBox = ({
         );
     };
 
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation(); // Prevent the click from bubbling up and triggering the document click handler
+        onTagBoxClick(tagType);
+    };
+
     return (
         <div
             ref={tagBoxRef}
             className={`tag-box custom-scrollbar ${
                 isOver ? "tag-box-drag-over" : ""
             }`}
+            onClick={handleClick}
         >
             <div className="flex flex-wrap gap-2">
                 {appliedTags
@@ -414,6 +424,10 @@ const AddRecipe = () => {
     const TITLE_MAX_LENGTH = 100;
     const DESCRIPTION_MAX_LENGTH = 500;
 
+    // Ref for tag boxes to handle click outside
+    const allergenTagBoxRef = useRef<HTMLDivElement>(null);
+    const dietaryTagBoxRef = useRef<HTMLDivElement>(null);
+
     // Assign handleFocus and setFocusedField
     handleFocus = (field: string) => {
         setFocusedFieldState(field);
@@ -425,6 +439,28 @@ const AddRecipe = () => {
     setFocusedField = (field: string | null) => {
         setFocusedFieldState(field);
     };
+
+    // Handle clicks outside the tag boxes to clear focusedField
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const allergenNode = allergenTagBoxRef.current;
+            const dietaryNode = dietaryTagBoxRef.current;
+            if (
+                focusedField &&
+                !(
+                    allergenNode && allergenNode.contains(event.target as Node)
+                ) &&
+                !(dietaryNode && dietaryNode.contains(event.target as Node))
+            ) {
+                setFocusedField(null);
+            }
+        };
+
+        document.addEventListener("click", handleClickOutside);
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+        };
+    }, [focusedField]);
 
     // Update recipe.ingredients whenever ingredients state changes
     useEffect(() => {
@@ -739,6 +775,11 @@ const AddRecipe = () => {
             setNewUnit("");
             setShowAddUnit(false);
         }
+    };
+
+    // Handler for TagBox clicks
+    const handleTagBoxClick = (tagType: "allergen" | "dietary") => {
+        handleFocus(tagType === "allergen" ? "allergens" : "dietary");
     };
 
     // Instructions section handlers
@@ -1511,21 +1552,27 @@ const AddRecipe = () => {
                                     <label className="block text-yellow-500 mb-1">
                                         Allergens
                                     </label>
-                                    <TagBox
-                                        appliedTags={selectedTags}
-                                        setAppliedTags={setSelectedTags}
-                                        tagType="allergen"
-                                    />
+                                    <div ref={allergenTagBoxRef}>
+                                        <TagBox
+                                            appliedTags={selectedTags}
+                                            setAppliedTags={setSelectedTags}
+                                            tagType="allergen"
+                                            onTagBoxClick={handleTagBoxClick}
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-yellow-500 mb-1">
                                         Dietary Tags
                                     </label>
-                                    <TagBox
-                                        appliedTags={selectedTags}
-                                        setAppliedTags={setSelectedTags}
-                                        tagType="dietary"
-                                    />
+                                    <div ref={dietaryTagBoxRef}>
+                                        <TagBox
+                                            appliedTags={selectedTags}
+                                            setAppliedTags={setSelectedTags}
+                                            tagType="dietary"
+                                            onTagBoxClick={handleTagBoxClick}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             {/* Image Input */}
