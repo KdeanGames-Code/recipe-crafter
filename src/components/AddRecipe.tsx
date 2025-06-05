@@ -1,5 +1,14 @@
 /* AddRecipe.tsx - Component for adding or editing a recipe in the Recipe Crafter app */
 
+/* Dependencies:
+ * - src/utils/formUtils.tsx: Provides helper functions (handleInputChange, handleImageUpload, handleImageUrlChange, handleSubmit)
+ * - src/components/InfoBox.tsx: Renders contextual help text in the sidebar based on focusedField and imageMode
+ * - src/components/IngredientRow.tsx: Renders each ingredient row in the form with inputs for unit, quantity, and name
+ * - src/config/apiConfig.ts: Provides API_BASE_URL for axios requests
+ * - src/assets/images/placeholder-kitchen-672x448.png: Placeholder image for recipe preview
+ * - src/utils/ingredientUtils.tsx: Provides helper functions for managing ingredients (addIngredient, removeIngredient, handleIngredientChange, handleIngredientUnitChange, fractionToDecimal)
+ */
+
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -117,11 +126,15 @@ const TagBox = ({
     setAppliedTags,
     tagType,
     onTagBoxClick,
+    setAvailableAllergens,
+    setAvailableDietaryTags,
 }: {
     appliedTags: TagBadge[];
     setAppliedTags: React.Dispatch<React.SetStateAction<TagBadge[]>>;
     tagType: "allergen" | "dietary";
     onTagBoxClick: (tagType: "allergen" | "dietary") => void;
+    setAvailableAllergens: React.Dispatch<React.SetStateAction<string[]>>;
+    setAvailableDietaryTags: React.Dispatch<React.SetStateAction<string[]>>;
 }) => {
     const tagBoxRef = useRef<HTMLDivElement>(null);
 
@@ -134,7 +147,38 @@ const TagBox = ({
                     (tag) => tag.type === item.type && tag.value === item.value
                 )
             ) {
-                setAppliedTags((prev) => [...prev, item]);
+                console.log(`Dropping ${item.type} tag: ${item.value}`);
+                setAppliedTags((prev) => {
+                    const newTags = [...prev, item];
+                    console.log("Updated appliedTags:", newTags);
+                    return newTags;
+                });
+                // Remove the tag from the sidebar's available tags
+                if (item.type === "allergen") {
+                    setAvailableAllergens((prev) => {
+                        const newAvailable = prev.filter(
+                            (tag) => tag !== item.value
+                        );
+                        console.log(
+                            "Updated availableAllergens:",
+                            newAvailable
+                        );
+                        return newAvailable;
+                    });
+                } else if (item.type === "dietary") {
+                    setAvailableDietaryTags((prev) => {
+                        const newAvailable = prev.filter(
+                            (tag) => tag !== item.value
+                        );
+                        console.log(
+                            "Updated availableDietaryTags:",
+                            newAvailable
+                        );
+                        return newAvailable;
+                    });
+                }
+                // Force a sidebar update by toggling focusedField
+                onTagBoxClick(tagType);
             }
         },
         collect: (monitor) => ({
@@ -145,17 +189,52 @@ const TagBox = ({
     drop(tagBoxRef);
 
     const handleRemove = (badge: TagBadge) => {
-        setAppliedTags((prev) =>
-            prev.filter(
+        console.log(`Removing ${badge.type} tag: ${badge.value}`);
+        setAppliedTags((prev) => {
+            const newTags = prev.filter(
                 (tag) => !(tag.type === badge.type && tag.value === badge.value)
-            )
-        );
+            );
+            console.log("Updated appliedTags after removal:", newTags);
+            return newTags;
+        });
+        // Add the tag back to the sidebar's available tags
+        if (badge.type === "allergen") {
+            setAvailableAllergens((prev) => {
+                const newAvailable = [...prev, badge.value].sort((a, b) =>
+                    a.localeCompare(b)
+                );
+                console.log(
+                    "Updated availableAllergens after adding back:",
+                    newAvailable
+                );
+                return newAvailable;
+            });
+        } else if (badge.type === "dietary") {
+            setAvailableDietaryTags((prev) => {
+                const newAvailable = [...prev, badge.value].sort((a, b) =>
+                    a.localeCompare(b)
+                );
+                console.log(
+                    "Updated availableDietaryTags after adding back:",
+                    newAvailable
+                );
+                return newAvailable;
+            });
+        }
+        // Force a sidebar update by toggling focusedField
+        onTagBoxClick(tagType);
     };
 
     const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
         e.stopPropagation(); // Prevent the click from bubbling up and triggering the document click handler
+        console.log(`TagBox clicked for ${tagType}`);
         onTagBoxClick(tagType);
     };
+
+    console.log(
+        `Rendering TagBox for ${tagType} with appliedTags:`,
+        appliedTags
+    );
 
     return (
         <div
@@ -353,8 +432,10 @@ let setFocusedField: (field: string | null) => void;
 const AddRecipe = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [allergens, setAllergens] = useState<string[]>([]);
-    const [dietaryTags, setDietaryTags] = useState<string[]>([]);
+    const [availableAllergens, setAvailableAllergens] = useState<string[]>([]);
+    const [availableDietaryTags, setAvailableDietaryTags] = useState<string[]>(
+        []
+    );
     const [cuisines, setCuisines] = useState<string[]>([]);
     const [dishTypes, setDishTypes] = useState<string[]>([]);
     const [isLoadingTags, setIsLoadingTags] = useState<boolean>(true);
@@ -430,13 +511,19 @@ const AddRecipe = () => {
 
     // Assign handleFocus and setFocusedField
     handleFocus = (field: string) => {
-        setFocusedFieldState(field);
+        console.log(`Setting focusedField to ${field}`);
+        // Toggle focusedField to force a re-render
+        setFocusedFieldState(null);
+        setTimeout(() => {
+            setFocusedFieldState(field);
+        }, 0);
         setShowAddCuisine(false);
         setShowAddDishType(false);
         setShowAddUnit(false);
     };
 
     setFocusedField = (field: string | null) => {
+        console.log(`Clearing focusedField to ${field}`);
         setFocusedFieldState(field);
     };
 
@@ -452,6 +539,7 @@ const AddRecipe = () => {
                 ) &&
                 !(dietaryNode && dietaryNode.contains(event.target as Node))
             ) {
+                console.log("Click outside detected, clearing focusedField");
                 setFocusedField(null);
             }
         };
@@ -489,8 +577,10 @@ const AddRecipe = () => {
                 const dietaryTagsList = response.data
                     .filter((tag: Tag) => tag.tag_type === "dietary")
                     .map((tag: Tag) => tag.tag_name);
-                setAllergens(allergenTags);
-                setDietaryTags(dietaryTagsList);
+                console.log("Fetched allergenTags:", allergenTags);
+                console.log("Fetched dietaryTagsList:", dietaryTagsList);
+                setAvailableAllergens(allergenTags); // Initialize available tags
+                setAvailableDietaryTags(dietaryTagsList); // Initialize available tags
                 setIsLoadingTags(false);
             })
             .catch((error) => {
@@ -498,8 +588,8 @@ const AddRecipe = () => {
                 setErrorMessage(
                     "Failed to load tag options. Please try again later."
                 );
-                setAllergens([]);
-                setDietaryTags([]);
+                setAvailableAllergens([]);
+                setAvailableDietaryTags([]);
                 setIsLoadingTags(false);
             });
 
@@ -674,7 +764,37 @@ const AddRecipe = () => {
                                     value: tag.tag_name,
                                 })
                             );
+                            console.log(
+                                "Fetched recipeTags for editing:",
+                                recipeTags
+                            );
                             setSelectedTags(recipeTags);
+                            // Remove fetched tags from available lists
+                            recipeTags.forEach((tag: TagBadge) => {
+                                if (tag.type === "allergen") {
+                                    setAvailableAllergens((prev) => {
+                                        const newAvailable = prev.filter(
+                                            (t) => t !== tag.value
+                                        );
+                                        console.log(
+                                            "Updated availableAllergens after removing fetched tags:",
+                                            newAvailable
+                                        );
+                                        return newAvailable;
+                                    });
+                                } else if (tag.type === "dietary") {
+                                    setAvailableDietaryTags((prev) => {
+                                        const newAvailable = prev.filter(
+                                            (t) => t !== tag.value
+                                        );
+                                        console.log(
+                                            "Updated availableDietaryTags after removing fetched tags:",
+                                            newAvailable
+                                        );
+                                        return newAvailable;
+                                    });
+                                }
+                            });
                         })
                         .catch((error) => {
                             console.error(
@@ -991,6 +1111,10 @@ const AddRecipe = () => {
         }
     };
 
+    console.log("Rendering AddRecipe with focusedField:", focusedField);
+    console.log("availableAllergens:", availableAllergens);
+    console.log("availableDietaryTags:", availableDietaryTags);
+
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="flex">
@@ -1138,17 +1262,29 @@ const AddRecipe = () => {
                                         </h3>
                                         <div className="form-section custom-scrollbar">
                                             <div className="flex flex-wrap gap-2">
-                                                {allergens.map((allergen) => (
-                                                    <TagBadge
-                                                        key={`allergen-${allergen}`}
-                                                        badge={{
-                                                            type: "allergen",
-                                                            value: allergen,
-                                                        }}
-                                                        onRemove={() => {}}
-                                                        showRemove={false}
-                                                    />
-                                                ))}
+                                                {availableAllergens.length >
+                                                0 ? (
+                                                    availableAllergens.map(
+                                                        (allergen) => (
+                                                            <TagBadge
+                                                                key={`allergen-${allergen}`}
+                                                                badge={{
+                                                                    type: "allergen",
+                                                                    value: allergen,
+                                                                }}
+                                                                onRemove={() => {}}
+                                                                showRemove={
+                                                                    false
+                                                                }
+                                                            />
+                                                        )
+                                                    )
+                                                ) : (
+                                                    <p className="text-gray-400">
+                                                        No allergen tags
+                                                        available
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1161,17 +1297,29 @@ const AddRecipe = () => {
                                         </h3>
                                         <div className="form-section custom-scrollbar">
                                             <div className="flex flex-wrap gap-2">
-                                                {dietaryTags.map((dietary) => (
-                                                    <TagBadge
-                                                        key={`dietary-${dietary}`}
-                                                        badge={{
-                                                            type: "dietary",
-                                                            value: dietary,
-                                                        }}
-                                                        onRemove={() => {}}
-                                                        showRemove={false}
-                                                    />
-                                                ))}
+                                                {availableDietaryTags.length >
+                                                0 ? (
+                                                    availableDietaryTags.map(
+                                                        (dietary) => (
+                                                            <TagBadge
+                                                                key={`dietary-${dietary}`}
+                                                                badge={{
+                                                                    type: "dietary",
+                                                                    value: dietary,
+                                                                }}
+                                                                onRemove={() => {}}
+                                                                showRemove={
+                                                                    false
+                                                                }
+                                                            />
+                                                        )
+                                                    )
+                                                ) : (
+                                                    <p className="text-gray-400">
+                                                        No dietary tags
+                                                        available
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1558,6 +1706,12 @@ const AddRecipe = () => {
                                             setAppliedTags={setSelectedTags}
                                             tagType="allergen"
                                             onTagBoxClick={handleTagBoxClick}
+                                            setAvailableAllergens={
+                                                setAvailableAllergens
+                                            }
+                                            setAvailableDietaryTags={
+                                                setAvailableDietaryTags
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -1571,6 +1725,12 @@ const AddRecipe = () => {
                                             setAppliedTags={setSelectedTags}
                                             tagType="dietary"
                                             onTagBoxClick={handleTagBoxClick}
+                                            setAvailableAllergens={
+                                                setAvailableAllergens
+                                            }
+                                            setAvailableDietaryTags={
+                                                setAvailableDietaryTags
+                                            }
                                         />
                                     </div>
                                 </div>
